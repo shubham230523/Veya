@@ -28,7 +28,7 @@ class SkillService {
         }
 
         const { data, error } = await query;
-        if (!error && data && data.length > 0) {
+        if (!error && data) {
           return data as CanonicalSkill[];
         }
       } catch (err) {
@@ -36,7 +36,7 @@ class SkillService {
       }
     }
 
-    // In-Memory / Fallback Search
+    // In-Memory / Fallback Search (Used when Supabase is NOT configured)
     let result = [...this.skills];
 
     if (filter?.category && filter.category !== 'All') {
@@ -66,8 +66,9 @@ class SkillService {
       try {
         const { data, error } = await supabase.from('skills').select('*').eq('id', id).single();
         if (!error && data) return data as CanonicalSkill;
+        if (!error && !data) return undefined;
       } catch (err) {
-        console.warn('Supabase getSkillById fallback:', err);
+        console.warn('Supabase getSkillById error:', err);
       }
     }
     return this.skills.find((s) => s.id === id);
@@ -113,7 +114,7 @@ class SkillService {
         const { data: inserted, error } = await supabase.from('skills').insert([newSkill]).select().single();
         if (!error && inserted) return inserted as CanonicalSkill;
       } catch (err) {
-        console.warn('Supabase createSkill fallback:', err);
+        console.warn('Supabase createSkill error:', err);
       }
     }
 

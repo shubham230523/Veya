@@ -155,37 +155,45 @@ export default function HomeScreen() {
             </View>
           </View>
 
-          <View style={isDesktop ? styles.gridContainer : undefined}>
-            {SEED_WORKFLOWS.map((wf) => (
-              <View key={wf.id} style={isDesktop ? styles.gridCol : undefined}>
-                <Card
-                  onPress={() =>
-                    router.push({
-                      pathname: '/workflow/[id]',
-                      params: { id: wf.id, initialWorkflow: JSON.stringify(wf) },
-                    })
-                  }
-                  style={styles.workflowCard}
-                >
-                  <View style={styles.wfHeader}>
-                    <Text style={[styles.wfName, { color: colors.textPrimary }]}>{wf.name}</Text>
-                    <Text style={[styles.wfStepsCount, { color: palette.primaryLight }]}>
-                      {wf.steps.length} Skills
+          {SEED_WORKFLOWS.length === 0 ? (
+            <Card style={{ marginBottom: spacing.lg, paddingVertical: spacing.lg, alignItems: 'center' }}>
+              <Text style={{ color: colors.textSecondary, fontSize: 13 }}>
+                No saved workflows yet. Type a goal above to compose your first AI workflow!
+              </Text>
+            </Card>
+          ) : (
+            <View style={isDesktop ? styles.gridContainer : undefined}>
+              {SEED_WORKFLOWS.map((wf) => (
+                <View key={wf.id} style={isDesktop ? styles.gridCol : undefined}>
+                  <Card
+                    onPress={() =>
+                      router.push({
+                        pathname: '/workflow/[id]',
+                        params: { id: wf.id, initialWorkflow: JSON.stringify(wf) },
+                      })
+                    }
+                    style={styles.workflowCard}
+                  >
+                    <View style={styles.wfHeader}>
+                      <Text style={[styles.wfName, { color: colors.textPrimary }]}>{wf.name}</Text>
+                      <Text style={[styles.wfStepsCount, { color: palette.primaryLight }]}>
+                        {wf.steps.length} Skills
+                      </Text>
+                    </View>
+                    <Text numberOfLines={2} style={[styles.wfGoal, { color: colors.textSecondary }]}>
+                      "{wf.goal}"
                     </Text>
-                  </View>
-                  <Text numberOfLines={2} style={[styles.wfGoal, { color: colors.textSecondary }]}>
-                    "{wf.goal}"
-                  </Text>
-                  <View style={styles.wfFooter}>
-                    <Text style={[styles.wfProvider, { color: colors.textMuted }]}>
-                      Default: {wf.provider_id.toUpperCase()}
-                    </Text>
-                    <ArrowRight color={colors.textSecondary} size={14} />
-                  </View>
-                </Card>
-              </View>
-            ))}
-          </View>
+                    <View style={styles.wfFooter}>
+                      <Text style={[styles.wfProvider, { color: colors.textMuted }]}>
+                        Default: {wf.provider_id.toUpperCase()}
+                      </Text>
+                      <ArrowRight color={colors.textSecondary} size={14} />
+                    </View>
+                  </Card>
+                </View>
+              ))}
+            </View>
+          )}
 
           {/* POPULAR SKILLS */}
           <View style={styles.sectionHeader}>
@@ -195,13 +203,21 @@ export default function HomeScreen() {
             </TouchableOpacity>
           </View>
 
-          <View style={isDesktop ? styles.gridContainer : undefined}>
-            {popularSkills.map((skill) => (
-              <View key={skill.id} style={isDesktop ? styles.gridCol : undefined}>
-                <SkillCard onSaveToggle={loadPopularSkills} skill={skill} />
-              </View>
-            ))}
-          </View>
+          {popularSkills.length === 0 ? (
+            <Card style={{ marginBottom: spacing.lg, paddingVertical: spacing.lg, alignItems: 'center' }}>
+              <Text style={{ color: colors.textSecondary, fontSize: 13 }}>
+                No skills found in database. Click "Create Skill" or seed your Supabase database to see skills!
+              </Text>
+            </Card>
+          ) : (
+            <View style={isDesktop ? styles.gridContainer : undefined}>
+              {popularSkills.map((skill) => (
+                <View key={skill.id} style={isDesktop ? styles.gridCol : undefined}>
+                  <SkillCard onSaveToggle={loadPopularSkills} skill={skill} />
+                </View>
+              ))}
+            </View>
+          )}
         </Container>
       </ScrollView>
     </SafeAreaView>
