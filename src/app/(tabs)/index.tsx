@@ -17,7 +17,7 @@ import { Card } from '../../components/ui/Card';
 import { Container } from '../../components/ui/Container';
 import { SkillCard } from '../../components/SkillCard';
 import { skillService } from '../../features/skills/skillService';
-import { parseIntentFromPrompt } from '../../core/ai/intentParser';
+import { parseIntentWithAI } from '../../core/ai/intentParser';
 import { WorkflowComposer } from '../../core/ai/workflowComposer';
 import { CanonicalSkill } from '../../types/skill';
 import { SEED_WORKFLOWS } from '../../core/database/seed';
@@ -47,7 +47,7 @@ export default function HomeScreen() {
     setLoading(true);
     try {
       const allSkills = await skillService.getSkills();
-      const parsedIntent = parseIntentFromPrompt(textToParse, allSkills);
+      const parsedIntent = await parseIntentWithAI(textToParse, allSkills);
       const workflow = WorkflowComposer.composeFromIntent(parsedIntent, allSkills);
 
       router.push({

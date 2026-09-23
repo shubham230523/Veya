@@ -19,6 +19,7 @@ import { Chip } from '../../components/ui/Chip';
 import { useToast } from '../../components/ui/Toast';
 import { skillService } from '../../features/skills/skillService';
 import { scanSkillContent } from '../../core/security/securityScanner';
+import { OpenRouterClient } from '../../core/ai/openrouterClient';
 import { SkillCategory } from '../../types/skill';
 
 const CATEGORIES: SkillCategory[] = [
@@ -32,6 +33,16 @@ const CATEGORIES: SkillCategory[] = [
   'Design',
   'Testing',
 ];
+
+interface DraftSkillPayload {
+  name: string;
+  description: string;
+  objective: string;
+  instructions: string;
+  rules: string[];
+  expectedOutput: string;
+  category: SkillCategory;
+}
 
 export default function CreateSkillScreen() {
   const { colors } = useTheme();
@@ -56,20 +67,44 @@ export default function CreateSkillScreen() {
     rules: [rules],
   });
 
-  const handleAiDraft = () => {
+  const handleAiDraft = async () => {
     if (!aiPrompt.trim()) return;
     setDrafting(true);
 
-    setTimeout(() => {
-      setName(`AI Draft: ${aiPrompt.slice(0, 25)}`);
-      setDescription(`Automated canonical skill generated for: "${aiPrompt}"`);
-      setObjective(`Provide structured strategy and code implementation for ${aiPrompt}.`);
-      setInstructions(`Analyze input requirements, validate environment prerequisites, and execute step-by-step logic for ${aiPrompt}.`);
-      setExpectedOutput(`Clean, actionable code, documentation, or design specs.`);
-      setRules(`Do not generate secrets or unsafe system code.\nEnsure cross-platform mobile compatibility.`);
+    try {
+      const systemInstruction = `You are Veya AI Skill Architect.
+Draft a structured canonical AI Skill JSON object from the user's description.
+
+Return ONLY a JSON object matching this schema:
+{
+  "name": "Concise title",
+  "description": "Short summary of what this skill accomplishes",
+  "objective": "Clear primary goal statement",
+  "instructions": "Detailed step-by-step instructions for the LLM executing this skill",
+  "rules": ["Rule 1 constraint", "Rule 2 constraint"],
+  "expectedOutput": "Specific deliverable structure description",
+  "category": "One of: Coding, AI, Research, Learning, Creator, Productivity, Business, Design, Testing"
+}`;
+
+      const draft = await OpenRouterClient.generateStructuredJSON<DraftSkillPayload>(
+        systemInstruction,
+        aiPrompt
+      );
+
+      if (draft.name) setName(draft.name);
+      if (draft.description) setDescription(draft.description);
+      if (draft.objective) setObjective(draft.objective);
+      if (draft.instructions) setInstructions(draft.instructions);
+      if (draft.expectedOutput) setExpectedOutput(draft.expectedOutput);
+      if (draft.rules && Array.isArray(draft.rules)) setRules(draft.rules.join('\n'));
+      if (draft.category && CATEGORIES.includes(draft.category)) setCategory(draft.category);
+
+      showToast('AI Skill draft generated successfully!', 'success');
+    } catch (err: any) {
+      showToast(err.message || 'AI Draft generation failed', 'error');
+    } finally {
       setDrafting(false);
-      showToast('AI Skill draft created!', 'success');
-    }, 1000);
+    }
   };
 
   const handleSaveSkill = async () => {
@@ -102,7 +137,7 @@ export default function CreateSkillScreen() {
       version: 1,
       category,
       tags: [category, 'Custom'],
-      providerCompatibility: ['gemini', 'claude', 'gpt'],
+      providerCompatibility: ['openrouter', 'gemini', 'claude', 'gpt'],
       source: {
         type: 'user_created',
         source_name: 'Custom User Skill',
@@ -134,7 +169,7 @@ export default function CreateSkillScreen() {
               <Text style={[styles.aiTitle, { color: colors.textPrimary }]}>AI Skill Assistant</Text>
             </View>
             <Text style={[styles.aiSubtitle, { color: colors.textSecondary }]}>
-              Describe what you want this Skill to do, and AI will generate a structured draft.
+              Describe what you want this Skill to do, and OpenRouter AI will generate a structured draft.
             </Text>
             <Input
               onChangeText={setAiPrompt}

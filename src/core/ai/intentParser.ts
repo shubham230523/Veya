@@ -1,5 +1,6 @@
 import { ParsedIntent } from '../../types/workflow';
 import { CanonicalSkill } from '../../types/skill';
+import { OpenRouterClient } from './openrouterClient';
 
 export const parseIntentFromPrompt = (
   rawPrompt: string,
@@ -39,16 +40,13 @@ export const parseIntentFromPrompt = (
     (skill) => {
       let score = 0;
 
-      // Title/Description match
       if (promptLower.includes(skill.name.toLowerCase())) score += 5;
       if (promptLower.includes(skill.category.toLowerCase())) score += 3;
 
-      // Tag matches
       skill.tags.forEach((tag) => {
         if (promptLower.includes(tag.toLowerCase())) score += 2;
       });
 
-      // Broad intent match triggers
       if (promptLower.includes('app') && ['PRD', 'UX', 'React Native'].some((k) => skill.tags.includes(k))) score += 2;
       if (promptLower.includes('ai') && ['AI', 'OpenRouter', 'Whisper'].some((k) => skill.tags.includes(k))) score += 2;
 
@@ -56,13 +54,11 @@ export const parseIntentFromPrompt = (
     }
   );
 
-  // Filter and sort skills by score
   const topMatchedSkills = matchedSkillScores
     .filter((item) => item.score > 0)
     .sort((a, b) => b.score - a.score)
     .map((item) => item.skill.id);
 
-  // Fallback: Default to foundational pipeline if no specific match
   const suggestedSkillIds =
     topMatchedSkills.length > 0
       ? topMatchedSkills.slice(0, 6)
@@ -76,4 +72,54 @@ export const parseIntentFromPrompt = (
     suggestedSkillIds,
     confidence: topMatchedSkills.length > 0 ? 0.92 : 0.75,
   };
+};
+
+export const parseIntentWithAI = async (
+  rawPrompt: string,
+  availableSkills: CanonicalSkill[]
+): Promise<ParsedIntent> => {
+  try {
+    const skillCatalogSummary = availableSkills.map((s) => ({
+      id: s.id,
+      name: s.name,
+      category: s.category,
+      description: s.description,
+      tags: s.tags,
+    }));
+
+    const systemInstruction = `You are Veya AI Intent Engine.
+Analyze the user's natural language goal prompt and select matching Skills from the provided Catalog.
+
+SKILL CATALOG:
+${JSON.stringify(skillCatalogSummary, null, 2)}
+
+Return a JSON object with this EXACT schema:
+{
+  "extractedGoal": "string summarizing the main goal",
+  "domain": "string domain category (e.g. Mobile App, SaaS, Creator, AI)",
+  "capabilitiesNeeded": ["array", "of", "capability", "strings"],
+  "suggestedSkillIds": ["array", "of", "skill", "ids", "from", "catalog"],
+  "confidence": number between 0.0 and 1.0
+}`;
+
+    const aiParsed = await OpenRouterClient.generateStructuredJSON<ParsedIntent>(
+      systemInstruction,
+      rawPrompt
+    );
+
+    return {
+      rawPrompt,
+      extractedGoal: aiParsed.extractedGoal || rawPrompt,
+      domain: aiParsed.domain || 'Software Engineering',
+      capabilitiesNeeded: aiParsed.capabilitiesNeeded || ['General Strategy'],
+      suggestedSkillIds:
+        aiParsed.suggestedSkillIds && aiParsed.suggestedSkillIds.length > 0
+          ? aiParsed.suggestedSkillIds
+          : availableSkills.slice(0, 4).map((s) => s.id),
+      confidence: aiParsed.confidence || 0.95,
+    };
+  } catch (err: any) {
+    console.warn('Live AI Intent Parsing failed, falling back to heuristic matching:', err.message);
+    return parseIntentFromPrompt(rawPrompt, availableSkills);
+  }
 };

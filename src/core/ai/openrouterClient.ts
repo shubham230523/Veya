@@ -1,8 +1,6 @@
 import { ProviderType } from '../../types/skill';
 import { PROVIDERS, DEFAULT_PROVIDER_ID } from '../../types/provider';
 
-const OPENROUTER_API_KEY = process.env.EXPO_PUBLIC_OPENROUTER_API_KEY || '';
-
 export interface OpenRouterResponse {
   content: string;
   providerUsed: ProviderType;
@@ -10,59 +8,95 @@ export interface OpenRouterResponse {
 }
 
 export class OpenRouterClient {
+  private static getApiKey(): string {
+    const key = process.env.EXPO_PUBLIC_OPENROUTER_API_KEY || '';
+    if (!key || key.includes('placeholder')) {
+      throw new Error(
+        'OpenRouter API key is missing. Please set EXPO_PUBLIC_OPENROUTER_API_KEY in your .env file.'
+      );
+    }
+    return key.trim();
+  }
+
   static async generatePromptResponse(
     prompt: string,
     provider: ProviderType = DEFAULT_PROVIDER_ID
   ): Promise<OpenRouterResponse> {
-    const providerInfo = PROVIDERS[provider];
+    const apiKey = this.getApiKey();
+    const providerInfo = PROVIDERS[provider] || PROVIDERS['openrouter'];
 
-    if (!OPENROUTER_API_KEY || OPENROUTER_API_KEY.includes('placeholder')) {
-      // Offline fallback generator for development and testing
-      return {
-        content: `[Veya AI Engine Output Simulation - Provider: ${providerInfo.name}]\n\n` +
-          `Successfully parsed and validated Veya workflow payload.\n\n` +
-          `Prompt Payload:\n${prompt.slice(0, 300)}...\n\n` +
-          `Ready to copy/export output into your target workspace or LLM chat!`,
-        providerUsed: provider,
+    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${apiKey}`,
+        'HTTP-Referer': 'https://veya.app',
+        'X-Title': 'Veya AI Skill Engine',
+      },
+      body: JSON.stringify({
         model: providerInfo.modelIdentifier,
-      };
+        messages: [{ role: 'user', content: prompt }],
+        temperature: 0.2,
+      }),
+    });
+
+    if (!response.ok) {
+      const errText = await response.text();
+      throw new Error(`OpenRouter API Error (${response.status}): ${errText}`);
     }
 
+    const data = await response.json();
+    const content = data.choices?.[0]?.message?.content || 'No response content returned.';
+
+    return {
+      content,
+      providerUsed: provider,
+      model: providerInfo.modelIdentifier,
+    };
+  }
+
+  static async generateStructuredJSON<T = any>(
+    systemInstruction: string,
+    userPrompt: string,
+    provider: ProviderType = DEFAULT_PROVIDER_ID
+  ): Promise<T> {
+    const apiKey = this.getApiKey();
+    const providerInfo = PROVIDERS[provider] || PROVIDERS['openrouter'];
+
+    const fullPrompt = `${systemInstruction}\n\nUSER PROMPT:\n${userPrompt}\n\nCRITICAL: Return ONLY raw valid JSON. Do not include markdown codeblocks or surrounding conversational text.`;
+
+    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${apiKey}`,
+        'HTTP-Referer': 'https://veya.app',
+        'X-Title': 'Veya AI Skill Engine',
+      },
+      body: JSON.stringify({
+        model: providerInfo.modelIdentifier,
+        messages: [{ role: 'user', content: fullPrompt }],
+        temperature: 0.1,
+      }),
+    });
+
+    if (!response.ok) {
+      const errText = await response.text();
+      throw new Error(`OpenRouter Structured API Error (${response.status}): ${errText}`);
+    }
+
+    const data = await response.json();
+    const rawContent = data.choices?.[0]?.message?.content || '';
+
+    // Extract JSON block if enclosed in markdown
+    const jsonMatch = rawContent.match(/(\{[\s\S]*\}|\[[\s\S]*\])/);
+    const jsonString = jsonMatch ? jsonMatch[0] : rawContent.trim();
+
     try {
-      const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${OPENROUTER_API_KEY}`,
-          'HTTP-Referer': 'https://veya.app',
-          'X-Title': 'Veya AI Skill Engine',
-        },
-        body: JSON.stringify({
-          model: providerInfo.modelIdentifier,
-          messages: [{ role: 'user', content: prompt }],
-          temperature: 0.2,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`OpenRouter HTTP ${response.status}: ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      const content = data.choices?.[0]?.message?.content || 'No response returned from model.';
-
-      return {
-        content,
-        providerUsed: provider,
-        model: providerInfo.modelIdentifier,
-      };
-    } catch (err: any) {
-      console.warn('OpenRouter call error, returning fallback response:', err.message);
-      return {
-        content: `[Veya Workflow Prompt Generated Successfully]\n\n${prompt}`,
-        providerUsed: provider,
-        model: providerInfo.modelIdentifier,
-      };
+      return JSON.parse(jsonString) as T;
+    } catch (parseErr) {
+      console.error('Failed to parse LLM JSON response:', rawContent);
+      throw new Error('OpenRouter model returned malformed JSON structure.');
     }
   }
 }
