@@ -28,7 +28,6 @@ export default function TabsLayout() {
                 marginBottom: spacing.md,
                 borderWidth: 1,
                 borderColor: colors.surfaceBorder,
-                position: 'relative',
               }
             : {}),
         },
