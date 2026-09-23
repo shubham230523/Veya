@@ -12,6 +12,7 @@ import { ArrowLeft, Sparkles, ShieldCheck, AlertTriangle } from 'lucide-react-na
 import { useTheme, spacing, radius, palette } from '../../core/theme';
 import { Button } from '../../components/ui/Button';
 import { Card } from '../../components/ui/Card';
+import { Container } from '../../components/ui/Container';
 import { Input } from '../../components/ui/Input';
 import { Badge } from '../../components/ui/Badge';
 import { Chip } from '../../components/ui/Chip';
@@ -115,78 +116,80 @@ export default function CreateSkillScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.bg }]}>
-      {/* Top Navbar */}
-      <View style={[styles.navbar, { borderColor: colors.surfaceBorder }]}>
-        <TouchableOpacity onPress={() => router.back()}>
-          <ArrowLeft color={colors.textPrimary} size={22} />
-        </TouchableOpacity>
-        <Text style={[styles.navTitle, { color: colors.textPrimary }]}>Create Custom Skill</Text>
-        <View style={{ width: 22 }} />
-      </View>
+      <Container maxWidth={960}>
+        {/* Top Navbar */}
+        <View style={[styles.navbar, { borderColor: colors.surfaceBorder }]}>
+          <TouchableOpacity onPress={() => router.back()}>
+            <ArrowLeft color={colors.textPrimary} size={22} />
+          </TouchableOpacity>
+          <Text style={[styles.navTitle, { color: colors.textPrimary }]}>Create Custom Skill</Text>
+          <View style={{ width: 22 }} />
+        </View>
 
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        {/* AI DRAFT ASSISTANT */}
-        <Card style={styles.aiCard}>
-          <View style={styles.aiHeader}>
-            <Sparkles color={palette.primaryLight} size={18} />
-            <Text style={[styles.aiTitle, { color: colors.textPrimary }]}>AI Skill Assistant</Text>
-          </View>
-          <Text style={[styles.aiSubtitle, { color: colors.textSecondary }]}>
-            Describe what you want this Skill to do, and AI will generate a structured draft.
-          </Text>
-          <Input
-            onChangeText={setAiPrompt}
-            placeholder="e.g. 'Review React Native code for performance and memory leaks'"
-            value={aiPrompt}
-          />
-          <Button
-            loading={drafting}
-            onPress={handleAiDraft}
-            size="sm"
-            title="Generate AI Draft"
-            variant="secondary"
-          />
-        </Card>
-
-        {/* SECURITY SCANNER RESULTS */}
-        <Card style={styles.scanCard}>
-          <View style={styles.scanHeader}>
-            {scanResult.status === 'clean' ? (
-              <ShieldCheck color={colors.success} size={18} />
-            ) : (
-              <AlertTriangle color={colors.danger} size={18} />
-            )}
-            <Text style={[styles.scanTitle, { color: colors.textPrimary }]}>Security Scan Status</Text>
-          </View>
-          <Badge
-            label={scanResult.summary}
-            variant={scanResult.status === 'clean' ? 'success' : 'danger'}
-          />
-        </Card>
-
-        {/* FORM INPUTS */}
-        <Input label="Skill Name" onChangeText={setName} placeholder="e.g. React Native Performance Audit" value={name} />
-        <Input label="Short Description" onChangeText={setDescription} placeholder="Brief summary of what this skill achieves" value={description} />
-        <Input label="Objective" multiline onChangeText={setObjective} placeholder="Clear objective statement" value={objective} />
-        <Input label="Instructions" multiline onChangeText={setInstructions} placeholder="Detailed step-by-step instructions for the AI provider" value={instructions} />
-        <Input label="Rules & Constraints (One per line)" multiline onChangeText={setRules} placeholder="e.g. Do not use legacy Class components" value={rules} />
-        <Input label="Expected Output" onChangeText={setExpectedOutput} placeholder="e.g. Clean refactored code block with explanation" value={expectedOutput} />
-
-        {/* Category Picker */}
-        <Text style={[styles.label, { color: colors.textSecondary }]}>Category</Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.catScroll}>
-          {CATEGORIES.map((cat) => (
-            <Chip
-              key={cat}
-              label={cat}
-              onPress={() => setCategory(cat)}
-              selected={category === cat}
+        <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+          {/* AI DRAFT ASSISTANT */}
+          <Card style={styles.aiCard}>
+            <View style={styles.aiHeader}>
+              <Sparkles color={palette.primaryLight} size={18} />
+              <Text style={[styles.aiTitle, { color: colors.textPrimary }]}>AI Skill Assistant</Text>
+            </View>
+            <Text style={[styles.aiSubtitle, { color: colors.textSecondary }]}>
+              Describe what you want this Skill to do, and AI will generate a structured draft.
+            </Text>
+            <Input
+              onChangeText={setAiPrompt}
+              placeholder="e.g. 'Review React Native code for performance and memory leaks'"
+              value={aiPrompt}
             />
-          ))}
-        </ScrollView>
+            <Button
+              loading={drafting}
+              onPress={handleAiDraft}
+              size="sm"
+              title="Generate AI Draft"
+              variant="secondary"
+            />
+          </Card>
 
-        <Button onPress={handleSaveSkill} style={{ marginTop: spacing.lg }} title="Publish Custom Skill" />
-      </ScrollView>
+          {/* SECURITY SCANNER RESULTS */}
+          <Card style={styles.scanCard}>
+            <View style={styles.scanHeader}>
+              {scanResult.status === 'clean' ? (
+                <ShieldCheck color={colors.success} size={18} />
+              ) : (
+                <AlertTriangle color={colors.danger} size={18} />
+              )}
+              <Text style={[styles.scanTitle, { color: colors.textPrimary }]}>Security Scan Status</Text>
+            </View>
+            <Badge
+              label={scanResult.summary}
+              variant={scanResult.status === 'clean' ? 'success' : 'danger'}
+            />
+          </Card>
+
+          {/* FORM INPUTS */}
+          <Input label="Skill Name" onChangeText={setName} placeholder="e.g. React Native Performance Audit" value={name} />
+          <Input label="Short Description" onChangeText={setDescription} placeholder="Brief summary of what this skill achieves" value={description} />
+          <Input label="Objective" multiline onChangeText={setObjective} placeholder="Clear objective statement" value={objective} />
+          <Input label="Instructions" multiline onChangeText={setInstructions} placeholder="Detailed step-by-step instructions for the AI provider" value={instructions} />
+          <Input label="Rules & Constraints (One per line)" multiline onChangeText={setRules} placeholder="e.g. Do not use legacy Class components" value={rules} />
+          <Input label="Expected Output" onChangeText={setExpectedOutput} placeholder="e.g. Clean refactored code block with explanation" value={expectedOutput} />
+
+          {/* Category Picker */}
+          <Text style={[styles.label, { color: colors.textSecondary }]}>Category</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.catScroll}>
+            {CATEGORIES.map((cat) => (
+              <Chip
+                key={cat}
+                label={cat}
+                onPress={() => setCategory(cat)}
+                selected={category === cat}
+              />
+            ))}
+          </ScrollView>
+
+          <Button onPress={handleSaveSkill} style={{ marginTop: spacing.lg }} title="Publish Custom Skill" />
+        </ScrollView>
+      </Container>
     </SafeAreaView>
   );
 }

@@ -14,17 +14,14 @@ import {
   ChevronUp,
   ChevronDown,
   Trash2,
-  Sparkles,
-  Zap,
-  Cpu,
   Play,
   Edit3,
 } from 'lucide-react-native';
 import { useTheme, spacing, radius, palette } from '../../core/theme';
 import { Button } from '../../components/ui/Button';
 import { Card } from '../../components/ui/Card';
+import { Container } from '../../components/ui/Container';
 import { Input } from '../../components/ui/Input';
-import { Badge } from '../../components/ui/Badge';
 import { Modal } from '../../components/ui/Modal';
 import { useToast } from '../../components/ui/Toast';
 import { Workflow, WorkflowStep } from '../../types/workflow';
@@ -120,138 +117,140 @@ export default function WorkflowEditorScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.bg }]}>
-      {/* Top Navbar */}
-      <View style={[styles.navbar, { borderColor: colors.surfaceBorder }]}>
-        <TouchableOpacity onPress={() => router.back()}>
-          <ArrowLeft color={colors.textPrimary} size={22} />
-        </TouchableOpacity>
-        <Text style={[styles.navTitle, { color: colors.textPrimary }]}>Workflow Editor</Text>
-        <View style={{ width: 22 }} />
-      </View>
-
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        {/* WORKFLOW GOAL HEADER */}
-        <Card style={styles.headerCard}>
-          <Text style={[styles.goalLabel, { color: palette.primaryLight }]}>WORKFLOW GOAL</Text>
-          <Text style={[styles.goalText, { color: colors.textPrimary }]}>"{workflow.goal}"</Text>
-        </Card>
-
-        {/* PROVIDER SELECTOR */}
-        <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>Choose Target AI Provider</Text>
-        <View style={styles.providerRow}>
-          {(['claude', 'gemini', 'gpt'] as ProviderType[]).map((prov) => {
-            const info = PROVIDERS[prov];
-            const isSelected = selectedProvider === prov;
-
-            return (
-              <TouchableOpacity
-                key={prov}
-                onPress={() => setSelectedProvider(prov)}
-                style={[
-                  styles.providerBox,
-                  {
-                    backgroundColor: isSelected ? 'rgba(99,102,241,0.2)' : colors.surface,
-                    borderColor: isSelected ? palette.primary : colors.surfaceBorder,
-                  },
-                ]}
-              >
-                <Text style={[styles.provName, { color: isSelected ? palette.primaryLight : colors.textPrimary }]}>
-                  {info.name.split(' ')[0]}
-                </Text>
-                <Text style={[styles.provVendor, { color: colors.textMuted }]}>{info.vendor}</Text>
-              </TouchableOpacity>
-            );
-          })}
+      <Container maxWidth={960}>
+        {/* Top Navbar */}
+        <View style={[styles.navbar, { borderColor: colors.surfaceBorder }]}>
+          <TouchableOpacity onPress={() => router.back()}>
+            <ArrowLeft color={colors.textPrimary} size={22} />
+          </TouchableOpacity>
+          <Text style={[styles.navTitle, { color: colors.textPrimary }]}>Workflow Editor</Text>
+          <View style={{ width: 22 }} />
         </View>
 
-        {/* STEPS PIPELINE */}
-        <View style={styles.stepsHeader}>
-          <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>Workflow Steps Pipeline</Text>
-          <Text style={[styles.stepCountText, { color: colors.textMuted }]}>
-            {workflow.steps.filter((s) => s.enabled).length} Enabled
-          </Text>
-        </View>
-
-        {workflow.steps.map((step, index) => (
-          <Card
-            key={step.id}
-            style={[
-              styles.stepCard,
-              { opacity: step.enabled ? 1 : 0.5, borderColor: step.enabled ? colors.surfaceBorder : colors.dangerBg },
-            ]}
-          >
-            <View style={styles.stepHeaderRow}>
-              <View style={styles.stepPosBadge}>
-                <Text style={styles.stepPosText}>0{step.position}</Text>
-              </View>
-              <Text style={[styles.stepSkillName, { color: colors.textPrimary }]}>
-                {step.skill?.name || 'Custom Execution Step'}
-              </Text>
-              <Switch
-                onValueChange={() => handleToggleStep(step.id)}
-                thumbColor="#FFFFFF"
-                trackColor={{ false: colors.surfaceHover, true: palette.primary }}
-                value={step.enabled}
-              />
-            </View>
-
-            <Text numberOfLines={2} style={[styles.stepObjective, { color: colors.textSecondary }]}>
-              {step.skill?.objective || 'Custom step objective'}
-            </Text>
-
-            {step.customInstructions ? (
-              <View style={[styles.customInstructionBox, { backgroundColor: colors.surfaceHover }]}>
-                <Text style={[styles.customInstructionText, { color: palette.primaryLight }]}>
-                  Custom Override: {step.customInstructions}
-                </Text>
-              </View>
-            ) : null}
-
-            {/* STEP CONTROL ACTIONS */}
-            <View style={styles.stepControlsRow}>
-              <View style={styles.reorderButtons}>
-                <TouchableOpacity
-                  disabled={index === 0}
-                  onPress={() => handleMoveStep(index, 'up')}
-                  style={[styles.iconControl, { opacity: index === 0 ? 0.3 : 1 }]}
-                >
-                  <ChevronUp color={colors.textPrimary} size={18} />
-                </TouchableOpacity>
-                <TouchableOpacity
-                  disabled={index === workflow.steps.length - 1}
-                  onPress={() => handleMoveStep(index, 'down')}
-                  style={[styles.iconControl, { opacity: index === workflow.steps.length - 1 ? 0.3 : 1 }]}
-                >
-                  <ChevronDown color={colors.textPrimary} size={18} />
-                </TouchableOpacity>
-              </View>
-
-              <View style={styles.rightControls}>
-                <TouchableOpacity
-                  onPress={() => {
-                    setEditingStep(step);
-                    setEditInstruction(step.customInstructions || '');
-                  }}
-                  style={styles.actionIconButton}
-                >
-                  <Edit3 color={palette.primaryLight} size={16} />
-                </TouchableOpacity>
-                <TouchableOpacity onPress={() => handleRemoveStep(step.id)} style={styles.actionIconButton}>
-                  <Trash2 color={colors.danger} size={16} />
-                </TouchableOpacity>
-              </View>
-            </View>
+        <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+          {/* WORKFLOW GOAL HEADER */}
+          <Card style={styles.headerCard}>
+            <Text style={[styles.goalLabel, { color: palette.primaryLight }]}>WORKFLOW GOAL</Text>
+            <Text style={[styles.goalText, { color: colors.textPrimary }]}>"{workflow.goal}"</Text>
           </Card>
-        ))}
 
-        {/* PRIMARY GENERATE BUTTON */}
-        <Button
-          icon={<Play color="#FFFFFF" size={18} />}
-          onPress={handleGenerateOutput}
-          style={styles.generateButton}
-          title={`Generate ${PROVIDERS[selectedProvider].name} Output`}
-        />
-      </ScrollView>
+          {/* PROVIDER SELECTOR */}
+          <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>Choose Target AI Provider</Text>
+          <View style={styles.providerRow}>
+            {(['claude', 'gemini', 'gpt'] as ProviderType[]).map((prov) => {
+              const info = PROVIDERS[prov];
+              const isSelected = selectedProvider === prov;
+
+              return (
+                <TouchableOpacity
+                  key={prov}
+                  onPress={() => setSelectedProvider(prov)}
+                  style={[
+                    styles.providerBox,
+                    {
+                      backgroundColor: isSelected ? 'rgba(99,102,241,0.2)' : colors.surface,
+                      borderColor: isSelected ? palette.primary : colors.surfaceBorder,
+                    },
+                  ]}
+                >
+                  <Text style={[styles.provName, { color: isSelected ? palette.primaryLight : colors.textPrimary }]}>
+                    {info.name.split(' ')[0]}
+                  </Text>
+                  <Text style={[styles.provVendor, { color: colors.textMuted }]}>{info.vendor}</Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+
+          {/* STEPS PIPELINE */}
+          <View style={styles.stepsHeader}>
+            <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>Workflow Steps Pipeline</Text>
+            <Text style={[styles.stepCountText, { color: colors.textMuted }]}>
+              {workflow.steps.filter((s) => s.enabled).length} Enabled
+            </Text>
+          </View>
+
+          {workflow.steps.map((step, index) => (
+            <Card
+              key={step.id}
+              style={[
+                styles.stepCard,
+                { opacity: step.enabled ? 1 : 0.5, borderColor: step.enabled ? colors.surfaceBorder : colors.dangerBg },
+              ]}
+            >
+              <View style={styles.stepHeaderRow}>
+                <View style={styles.stepPosBadge}>
+                  <Text style={styles.stepPosText}>0{step.position}</Text>
+                </View>
+                <Text style={[styles.stepSkillName, { color: colors.textPrimary }]}>
+                  {step.skill?.name || 'Custom Execution Step'}
+                </Text>
+                <Switch
+                  onValueChange={() => handleToggleStep(step.id)}
+                  thumbColor="#FFFFFF"
+                  trackColor={{ false: colors.surfaceHover, true: palette.primary }}
+                  value={step.enabled}
+                />
+              </View>
+
+              <Text numberOfLines={2} style={[styles.stepObjective, { color: colors.textSecondary }]}>
+                {step.skill?.objective || 'Custom step objective'}
+              </Text>
+
+              {step.customInstructions ? (
+                <View style={[styles.customInstructionBox, { backgroundColor: colors.surfaceHover }]}>
+                  <Text style={[styles.customInstructionText, { color: palette.primaryLight }]}>
+                    Custom Override: {step.customInstructions}
+                  </Text>
+                </View>
+              ) : null}
+
+              {/* STEP CONTROL ACTIONS */}
+              <View style={styles.stepControlsRow}>
+                <View style={styles.reorderButtons}>
+                  <TouchableOpacity
+                    disabled={index === 0}
+                    onPress={() => handleMoveStep(index, 'up')}
+                    style={[styles.iconControl, { opacity: index === 0 ? 0.3 : 1 }]}
+                  >
+                    <ChevronUp color={colors.textPrimary} size={18} />
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    disabled={index === workflow.steps.length - 1}
+                    onPress={() => handleMoveStep(index, 'down')}
+                    style={[styles.iconControl, { opacity: index === workflow.steps.length - 1 ? 0.3 : 1 }]}
+                  >
+                    <ChevronDown color={colors.textPrimary} size={18} />
+                  </TouchableOpacity>
+                </View>
+
+                <View style={styles.rightControls}>
+                  <TouchableOpacity
+                    onPress={() => {
+                      setEditingStep(step);
+                      setEditInstruction(step.customInstructions || '');
+                    }}
+                    style={styles.actionIconButton}
+                  >
+                    <Edit3 color={palette.primaryLight} size={16} />
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={() => handleRemoveStep(step.id)} style={styles.actionIconButton}>
+                    <Trash2 color={colors.danger} size={16} />
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </Card>
+          ))}
+
+          {/* PRIMARY GENERATE BUTTON */}
+          <Button
+            icon={<Play color="#FFFFFF" size={18} />}
+            onPress={handleGenerateOutput}
+            style={styles.generateButton}
+            title={`Generate ${PROVIDERS[selectedProvider].name} Output`}
+          />
+        </ScrollView>
+      </Container>
 
       {/* Custom Instruction Edit Modal */}
       <Modal

@@ -1,7 +1,8 @@
 import React from 'react';
+import { Platform } from 'react-native';
 import { Tabs } from 'expo-router';
 import { Sparkles, Compass, Bookmark, User } from 'lucide-react-native';
-import { useTheme, palette } from '../../core/theme';
+import { useTheme, palette, radius, spacing } from '../../core/theme';
 
 export default function TabsLayout() {
   const { colors } = useTheme();
@@ -16,8 +17,20 @@ export default function TabsLayout() {
           backgroundColor: colors.surface,
           borderTopColor: colors.surfaceBorder,
           height: 60,
-          paddingBottom: 8,
+          paddingBottom: Platform.OS === 'web' ? 10 : 8,
           paddingTop: 6,
+          ...(Platform.OS === 'web'
+            ? {
+                maxWidth: 800,
+                alignSelf: 'center',
+                width: '100%',
+                borderRadius: radius.lg,
+                marginBottom: spacing.md,
+                borderWidth: 1,
+                borderColor: colors.surfaceBorder,
+                position: 'relative',
+              }
+            : {}),
         },
         tabBarLabelStyle: {
           fontSize: 11,

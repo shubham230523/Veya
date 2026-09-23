@@ -8,10 +8,11 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
-import { ArrowLeft, Bookmark, ShieldCheck, Star, Layers, CheckCircle } from 'lucide-react-native';
+import { ArrowLeft, Bookmark, ShieldCheck, Layers, CheckCircle } from 'lucide-react-native';
 import { useTheme, spacing, radius, palette } from '../../core/theme';
 import { Button } from '../../components/ui/Button';
 import { Card } from '../../components/ui/Card';
+import { Container } from '../../components/ui/Container';
 import { Badge } from '../../components/ui/Badge';
 import { Rating } from '../../components/ui/Rating';
 import { Modal } from '../../components/ui/Modal';
@@ -72,157 +73,159 @@ export default function SkillDetailScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.bg }]}>
-      {/* Top Navbar */}
-      <View style={[styles.navbar, { borderColor: colors.surfaceBorder }]}>
-        <TouchableOpacity onPress={() => router.back()}>
-          <ArrowLeft color={colors.textPrimary} size={22} />
-        </TouchableOpacity>
-        <Text style={[styles.navTitle, { color: colors.textPrimary }]}>Skill Detail</Text>
-        <TouchableOpacity onPress={handleToggleSave}>
-          <Bookmark
-            color={isSaved ? palette.primary : colors.textMuted}
-            fill={isSaved ? palette.primary : 'transparent'}
-            size={22}
-          />
-        </TouchableOpacity>
-      </View>
-
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        {/* Title & Metadata */}
-        <View style={styles.headerBox}>
-          <View style={styles.badgeRow}>
-            <Badge label={skill.category} variant="primary" />
-            <Badge label={`v${skill.version}`} variant="secondary" />
-            {skill.security_scan_status === 'clean' && (
-              <Badge
-                icon={<ShieldCheck color={colors.success} size={10} />}
-                label="No Security Issues"
-                variant="success"
-              />
-            )}
-          </View>
-          <Text style={[styles.title, { color: colors.textPrimary }]}>{skill.name}</Text>
-          <Text style={[styles.description, { color: colors.textSecondary }]}>
-            {skill.description}
-          </Text>
-
-          {/* Trust Metrics Bar */}
-          <View style={[styles.trustBar, { backgroundColor: colors.surface, borderColor: colors.surfaceBorder }]}>
-            <View style={styles.trustItem}>
-              <Rating count={skill.rating_count} rating={skill.rating_average} size={12} />
-              <Text style={[styles.trustLabel, { color: colors.textMuted }]}>Average Rating</Text>
-            </View>
-            <View style={[styles.trustDivider, { backgroundColor: colors.surfaceBorder }]} />
-            <View style={styles.trustItem}>
-              <Text style={[styles.trustValue, { color: colors.textPrimary }]}>{skill.usage_count}</Text>
-              <Text style={[styles.trustLabel, { color: colors.textMuted }]}>Times Used</Text>
-            </View>
-            <View style={[styles.trustDivider, { backgroundColor: colors.surfaceBorder }]} />
-            <View style={styles.trustItem}>
-              <Text style={[styles.trustValue, { color: colors.textPrimary }]}>{skill.save_count}</Text>
-              <Text style={[styles.trustLabel, { color: colors.textMuted }]}>Saves</Text>
-            </View>
-          </View>
+      <Container maxWidth={960}>
+        {/* Top Navbar */}
+        <View style={[styles.navbar, { borderColor: colors.surfaceBorder }]}>
+          <TouchableOpacity onPress={() => router.back()}>
+            <ArrowLeft color={colors.textPrimary} size={22} />
+          </TouchableOpacity>
+          <Text style={[styles.navTitle, { color: colors.textPrimary }]}>Skill Detail</Text>
+          <TouchableOpacity onPress={handleToggleSave}>
+            <Bookmark
+              color={isSaved ? palette.primary : colors.textMuted}
+              fill={isSaved ? palette.primary : 'transparent'}
+              size={22}
+            />
+          </TouchableOpacity>
         </View>
 
-        {/* Action Button */}
-        <Button
-          icon={<Layers color="#FFFFFF" size={18} />}
-          onPress={() => {
-            showToast('Adding skill to workflow composer...', 'success');
-            router.push('/');
-          }}
-          style={styles.useButton}
-          title="Use Skill in Workflow"
-        />
+        <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+          {/* Title & Metadata */}
+          <View style={styles.headerBox}>
+            <View style={styles.badgeRow}>
+              <Badge label={skill.category} variant="primary" />
+              <Badge label={`v${skill.version}`} variant="secondary" />
+              {skill.security_scan_status === 'clean' && (
+                <Badge
+                  icon={<ShieldCheck color={colors.success} size={10} />}
+                  label="No Security Issues"
+                  variant="success"
+                />
+              )}
+            </View>
+            <Text style={[styles.title, { color: colors.textPrimary }]}>{skill.name}</Text>
+            <Text style={[styles.description, { color: colors.textSecondary }]}>
+              {skill.description}
+            </Text>
 
-        {/* OBJECTIVE & PREREQUISITES */}
-        <Card style={styles.sectionCard}>
-          <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>Objective</Text>
-          <Text style={[styles.bodyText, { color: colors.textSecondary }]}>{skill.objective}</Text>
-
-          {skill.prerequisites.length > 0 && (
-            <>
-              <Text style={[styles.sectionSubtitle, { color: colors.textPrimary }]}>Prerequisites</Text>
-              {skill.prerequisites.map((item, idx) => (
-                <Text key={idx} style={[styles.bulletText, { color: colors.textSecondary }]}>
-                  • {item}
-                </Text>
-              ))}
-            </>
-          )}
-        </Card>
-
-        {/* STEPS BREAKDOWN */}
-        <Card style={styles.sectionCard}>
-          <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>Execution Steps</Text>
-          {skill.steps.map((step) => (
-            <View key={step.number} style={styles.stepItem}>
-              <View style={[styles.stepNumberBadge, { backgroundColor: palette.primary }]}>
-                <Text style={styles.stepNumberText}>{step.number}</Text>
+            {/* Trust Metrics Bar */}
+            <View style={[styles.trustBar, { backgroundColor: colors.surface, borderColor: colors.surfaceBorder }]}>
+              <View style={styles.trustItem}>
+                <Rating count={skill.rating_count} rating={skill.rating_average} size={12} />
+                <Text style={[styles.trustLabel, { color: colors.textMuted }]}>Average Rating</Text>
               </View>
-              <View style={styles.stepContent}>
-                <Text style={[styles.stepTitle, { color: colors.textPrimary }]}>{step.title}</Text>
-                {step.description && (
-                  <Text style={[styles.stepDesc, { color: colors.textSecondary }]}>
-                    {step.description}
-                  </Text>
-                )}
+              <View style={[styles.trustDivider, { backgroundColor: colors.surfaceBorder }]} />
+              <View style={styles.trustItem}>
+                <Text style={[styles.trustValue, { color: colors.textPrimary }]}>{skill.usage_count}</Text>
+                <Text style={[styles.trustLabel, { color: colors.textMuted }]}>Times Used</Text>
+              </View>
+              <View style={[styles.trustDivider, { backgroundColor: colors.surfaceBorder }]} />
+              <View style={styles.trustItem}>
+                <Text style={[styles.trustValue, { color: colors.textPrimary }]}>{skill.save_count}</Text>
+                <Text style={[styles.trustLabel, { color: colors.textMuted }]}>Saves</Text>
               </View>
             </View>
-          ))}
-        </Card>
+          </View>
 
-        {/* RULES & CONSTRAINTS */}
-        {skill.rules.length > 0 && (
+          {/* Action Button */}
+          <Button
+            icon={<Layers color="#FFFFFF" size={18} />}
+            onPress={() => {
+              showToast('Adding skill to workflow composer...', 'success');
+              router.push('/');
+            }}
+            style={styles.useButton}
+            title="Use Skill in Workflow"
+          />
+
+          {/* OBJECTIVE & PREREQUISITES */}
           <Card style={styles.sectionCard}>
-            <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>Rules & Constraints</Text>
-            {skill.rules.map((rule, idx) => (
-              <View key={idx} style={styles.ruleRow}>
-                <CheckCircle color={colors.success} size={14} style={styles.checkIcon} />
-                <Text style={[styles.bodyText, { color: colors.textSecondary }]}>{rule}</Text>
+            <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>Objective</Text>
+            <Text style={[styles.bodyText, { color: colors.textSecondary }]}>{skill.objective}</Text>
+
+            {skill.prerequisites.length > 0 && (
+              <>
+                <Text style={[styles.sectionSubtitle, { color: colors.textPrimary }]}>Prerequisites</Text>
+                {skill.prerequisites.map((item, idx) => (
+                  <Text key={idx} style={[styles.bulletText, { color: colors.textSecondary }]}>
+                    • {item}
+                  </Text>
+                ))}
+              </>
+            )}
+          </Card>
+
+          {/* STEPS BREAKDOWN */}
+          <Card style={styles.sectionCard}>
+            <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>Execution Steps</Text>
+            {skill.steps.map((step) => (
+              <View key={step.number} style={styles.stepItem}>
+                <View style={[styles.stepNumberBadge, { backgroundColor: palette.primary }]}>
+                  <Text style={styles.stepNumberText}>{step.number}</Text>
+                </View>
+                <View style={styles.stepContent}>
+                  <Text style={[styles.stepTitle, { color: colors.textPrimary }]}>{step.title}</Text>
+                  {step.description && (
+                    <Text style={[styles.stepDesc, { color: colors.textSecondary }]}>
+                      {step.description}
+                    </Text>
+                  )}
+                </View>
               </View>
             ))}
           </Card>
-        )}
 
-        {/* EXPECTED OUTPUT */}
-        <Card style={styles.sectionCard}>
-          <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>Expected Output</Text>
-          <Text style={[styles.bodyText, { color: colors.textSecondary }]}>
-            {skill.expected_output}
-          </Text>
-        </Card>
-
-        {/* REVIEWS & RATINGS */}
-        <Card style={styles.sectionCard}>
-          <View style={styles.reviewHeader}>
-            <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>Community Reviews</Text>
-            <Button
-              onPress={() => setReviewModalVisible(true)}
-              size="sm"
-              title="Write Review"
-              variant="outline"
-            />
-          </View>
-
-          {reviews.length === 0 ? (
-            <Text style={[styles.bodyText, { color: colors.textMuted }]}>
-              No reviews yet. Be the first to rate this skill!
-            </Text>
-          ) : (
-            reviews.map((rev) => (
-              <View key={rev.id} style={[styles.reviewBox, { borderColor: colors.surfaceBorder }]}>
-                <View style={styles.revTop}>
-                  <Text style={[styles.revUser, { color: colors.textPrimary }]}>{rev.user_name}</Text>
-                  <Rating rating={rev.rating} size={10} />
+          {/* RULES & CONSTRAINTS */}
+          {skill.rules.length > 0 && (
+            <Card style={styles.sectionCard}>
+              <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>Rules & Constraints</Text>
+              {skill.rules.map((rule, idx) => (
+                <View key={idx} style={styles.ruleRow}>
+                  <CheckCircle color={colors.success} size={14} style={styles.checkIcon} />
+                  <Text style={[styles.bodyText, { color: colors.textSecondary }]}>{rule}</Text>
                 </View>
-                <Text style={[styles.revText, { color: colors.textSecondary }]}>{rev.content}</Text>
-              </View>
-            ))
+              ))}
+            </Card>
           )}
-        </Card>
-      </ScrollView>
+
+          {/* EXPECTED OUTPUT */}
+          <Card style={styles.sectionCard}>
+            <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>Expected Output</Text>
+            <Text style={[styles.bodyText, { color: colors.textSecondary }]}>
+              {skill.expected_output}
+            </Text>
+          </Card>
+
+          {/* REVIEWS & RATINGS */}
+          <Card style={styles.sectionCard}>
+            <View style={styles.reviewHeader}>
+              <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>Community Reviews</Text>
+              <Button
+                onPress={() => setReviewModalVisible(true)}
+                size="sm"
+                title="Write Review"
+                variant="outline"
+              />
+            </View>
+
+            {reviews.length === 0 ? (
+              <Text style={[styles.bodyText, { color: colors.textMuted }]}>
+                No reviews yet. Be the first to rate this skill!
+              </Text>
+            ) : (
+              reviews.map((rev) => (
+                <View key={rev.id} style={[styles.reviewBox, { borderColor: colors.surfaceBorder }]}>
+                  <View style={styles.revTop}>
+                    <Text style={[styles.revUser, { color: colors.textPrimary }]}>{rev.user_name}</Text>
+                    <Rating rating={rev.rating} size={10} />
+                  </View>
+                  <Text style={[styles.revText, { color: colors.textSecondary }]}>{rev.content}</Text>
+                </View>
+              ))
+            )}
+          </Card>
+        </ScrollView>
+      </Container>
 
       {/* Review Modal */}
       <Modal

@@ -6,11 +6,13 @@ import {
   StyleSheet,
   SafeAreaView,
   FlatList,
+  useWindowDimensions,
 } from 'react-native';
-import { Search, SlidersHorizontal, Sparkles } from 'lucide-react-native';
+import { Search, Sparkles } from 'lucide-react-native';
 import { useTheme, spacing, radius, palette } from '../../core/theme';
 import { Input } from '../../components/ui/Input';
 import { Chip } from '../../components/ui/Chip';
+import { Container } from '../../components/ui/Container';
 import { SkillCard } from '../../components/SkillCard';
 import { skillService } from '../../features/skills/skillService';
 import { CanonicalSkill, SkillCategory } from '../../types/skill';
@@ -29,6 +31,9 @@ const CATEGORIES: (SkillCategory | 'All')[] = [
 
 export default function DiscoverScreen() {
   const { colors } = useTheme();
+  const { width } = useWindowDimensions();
+  const isDesktop = width >= 768;
+
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<SkillCategory | 'All'>('All');
   const [skills, setSkills] = useState<CanonicalSkill[]>([]);
@@ -53,65 +58,71 @@ export default function DiscoverScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.bg }]}>
-      <View style={styles.header}>
-        <Text style={[styles.title, { color: colors.textPrimary }]}>Discover Skills</Text>
-        <Text style={[styles.subtitle, { color: colors.textMuted }]}>
-          Search and filter universal AI skills across categories.
-        </Text>
+      <Container maxWidth={960}>
+        <View style={styles.header}>
+          <Text style={[styles.title, { color: colors.textPrimary }]}>Discover Skills</Text>
+          <Text style={[styles.subtitle, { color: colors.textMuted }]}>
+            Search and filter universal AI skills across categories.
+          </Text>
 
-        {/* Search Bar */}
-        <Input
-          containerStyle={styles.searchContainer}
-          leftIcon={<Search color={colors.textMuted} size={18} />}
-          onChangeText={setSearchQuery}
-          placeholder="Search skills (e.g. 'React Native', 'Whisper', 'PRD', 'SaaS')..."
-          value={searchQuery}
-        />
+          {/* Search Bar */}
+          <Input
+            containerStyle={styles.searchContainer}
+            leftIcon={<Search color={colors.textMuted} size={18} />}
+            onChangeText={setSearchQuery}
+            placeholder="Search skills (e.g. 'React Native', 'Whisper', 'PRD', 'SaaS')..."
+            value={searchQuery}
+          />
 
-        {/* Categories Chips */}
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={styles.chipScroll}
-        >
-          {CATEGORIES.map((category) => (
-            <Chip
-              key={category}
-              label={category}
-              onPress={() => setSelectedCategory(category)}
-              selected={selectedCategory === category}
-            />
-          ))}
-        </ScrollView>
-      </View>
-
-      {/* Results Section */}
-      <View style={styles.resultsHeader}>
-        <Text style={[styles.resultsCount, { color: colors.textSecondary }]}>
-          {skills.length} {skills.length === 1 ? 'Skill' : 'Skills'} found
-        </Text>
-        <View style={styles.hybridBadge}>
-          <Sparkles color={palette.primaryLight} size={12} />
-          <Text style={[styles.hybridText, { color: palette.primaryLight }]}>Hybrid Search</Text>
+          {/* Categories Chips */}
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={styles.chipScroll}
+          >
+            {CATEGORIES.map((category) => (
+              <Chip
+                key={category}
+                label={category}
+                onPress={() => setSelectedCategory(category)}
+                selected={selectedCategory === category}
+              />
+            ))}
+          </ScrollView>
         </View>
-      </View>
 
-      <FlatList
-        contentContainerStyle={styles.listContent}
-        data={skills}
-        keyExtractor={(item) => item.id}
-        ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <Text style={[styles.emptyTitle, { color: colors.textPrimary }]}>No Skills Found</Text>
-            <Text style={[styles.emptyDesc, { color: colors.textMuted }]}>
-              Try adjusting your search filters or create a new custom skill.
-            </Text>
+        {/* Results Section Header */}
+        <View style={styles.resultsHeader}>
+          <Text style={[styles.resultsCount, { color: colors.textSecondary }]}>
+            {skills.length} {skills.length === 1 ? 'Skill' : 'Skills'} found
+          </Text>
+          <View style={styles.hybridBadge}>
+            <Sparkles color={palette.primaryLight} size={12} />
+            <Text style={[styles.hybridText, { color: palette.primaryLight }]}>Hybrid Search</Text>
           </View>
-        }
-        renderItem={({ item }) => (
-          <SkillCard onSaveToggle={fetchSkills} skill={item} />
-        )}
-      />
+        </View>
+
+        <FlatList
+          contentContainerStyle={styles.listContent}
+          data={skills}
+          key={isDesktop ? 'grid-2' : 'list-1'}
+          keyExtractor={(item) => item.id}
+          ListEmptyComponent={
+            <View style={styles.emptyContainer}>
+              <Text style={[styles.emptyTitle, { color: colors.textPrimary }]}>No Skills Found</Text>
+              <Text style={[styles.emptyDesc, { color: colors.textMuted }]}>
+                Try adjusting your search filters or create a new custom skill.
+              </Text>
+            </View>
+          }
+          numColumns={isDesktop ? 2 : 1}
+          renderItem={({ item }) => (
+            <View style={isDesktop ? styles.gridCol : undefined}>
+              <SkillCard onSaveToggle={fetchSkills} skill={item} />
+            </View>
+          )}
+        />
+      </Container>
     </SafeAreaView>
   );
 }
@@ -169,6 +180,10 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     paddingTop: 0,
     paddingBottom: 40,
+  },
+  gridCol: {
+    flex: 1,
+    paddingHorizontal: spacing.xs,
   },
   emptyContainer: {
     alignItems: 'center',
