@@ -1,7 +1,6 @@
 import React from 'react';
-import { Stack } from 'expo-router';
+import { Stack, DarkTheme, ThemeProvider as NavThemeProvider } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { ThemeProvider as NavThemeProvider, DarkTheme } from '@react-navigation/native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider, palette } from '../core/theme';
 import { ToastProvider } from '../components/ui/Toast';
