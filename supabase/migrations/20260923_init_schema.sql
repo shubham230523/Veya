@@ -27,6 +27,8 @@ CREATE TABLE IF NOT EXISTS public.skills (
     rules JSONB DEFAULT '[]'::jsonb,
     expected_output TEXT NOT NULL,
     validation TEXT,
+    category TEXT NOT NULL DEFAULT 'Coding',
+    tags TEXT[] DEFAULT '{}'::text[],
     visibility TEXT DEFAULT 'public' CHECK (visibility IN ('public', 'private', 'unlisted')),
     version INTEGER DEFAULT 1,
     rating_average NUMERIC(3,2) DEFAULT 0.0,

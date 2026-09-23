@@ -1,4 +1,4 @@
-export type ProviderType = 'gemini' | 'claude' | 'gpt';
+export type ProviderType = 'openrouter' | 'gemini' | 'ollama' | 'claude' | 'gpt';
 
 export type SkillVisibility = 'public' | 'private' | 'unlisted';
 

@@ -1,5 +1,5 @@
 import { ProviderType } from '../../types/skill';
-import { PROVIDERS } from '../../types/provider';
+import { PROVIDERS, DEFAULT_PROVIDER_ID } from '../../types/provider';
 
 const OPENROUTER_API_KEY = process.env.EXPO_PUBLIC_OPENROUTER_API_KEY || '';
 
@@ -12,7 +12,7 @@ export interface OpenRouterResponse {
 export class OpenRouterClient {
   static async generatePromptResponse(
     prompt: string,
-    provider: ProviderType = 'claude'
+    provider: ProviderType = DEFAULT_PROVIDER_ID
   ): Promise<OpenRouterResponse> {
     const providerInfo = PROVIDERS[provider];
 
