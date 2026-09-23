@@ -14,6 +14,7 @@ export default function RootLayout() {
         <ToastProvider>
           <StatusBar style="light" />
           <Stack screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="index" options={{ headerShown: false }} />
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
             <Stack.Screen name="skill/[id]" options={{ headerShown: false }} />
             <Stack.Screen name="skill/create" options={{ headerShown: false }} />
