@@ -1,56 +1,81 @@
-# Welcome to your Expo app 👋
+# Veya
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+> **Turn what you want into a clear path forward.**
 
-## Get started
+Veya is a universal AI Skill Engine that helps people turn their goals and ideas into structured, reusable AI workflows.
 
-1. Install dependencies
+Instead of figuring out the right prompts, tools, Skills, and sequence of steps, users simply describe what they want to accomplish.
 
-   ```bash
-   npm install
-   ```
+Veya discovers relevant Skills, combines them into a workflow, and adapts the result for the user's preferred AI provider.
 
-2. Start the app
+## How it works
 
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
+```text
+Your Goal
+   ↓
+Veya
+   ↓
+Discover Skills
+   ↓
+Compose Workflow
+   ↓
+Choose AI Provider
+   ↓
+Generate
+   ↓
+Copy / Export
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+### Example
 
-### Other setup steps
+> "I want to build an AI-powered note-taking app."
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+Veya can turn that into:
 
-## Learn more
+```text
+Research
+   ↓
+Requirements
+   ↓
+UX & Architecture
+   ↓
+Development
+   ↓
+AI Integration
+   ↓
+Testing
+   ↓
+Deployment
+```
 
-To learn more about developing your project with Expo, look at the following resources:
+Users can discover existing Skills, create their own, customize workflows, and adapt them for different AI environments.
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+## Core Concepts
 
-## Join the community
+* **Skills** — reusable capabilities and structured instructions
+* **Workflows** — multiple Skills composed into an ordered process
+* **Skill Discovery** — find relevant Skills from public and community sources
+* **Provider Adapters** — adapt Skills for Gemini, Claude, GPT, Codex, Cursor, and more
+* **Trust Signals** — ratings, usage, sources, recency, compatibility, and security checks
 
-Join our community of developers creating universal apps.
+## Tech Stack
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+* React Native + Expo + TypeScript
+* Android, iOS & Web
+* Supabase
+* PostgreSQL + pgvector
+* OpenRouter
+* Zustand
+* TanStack Query
+
+## Vision
+
+Veya isn't another AI chatbot.
+
+It is the layer between **what you want to accomplish** and **the AI tools you use to accomplish it**.
+
+```text
+Intent → Skills → Workflow → AI → Outcome
+```
+
+> **Veya — Find the path. Build the outcome.**
