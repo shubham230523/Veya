@@ -2,8 +2,8 @@
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE EXTENSION IF NOT EXISTS "vector";
 
--- 1. PROFILES
-CREATE TABLE IF NOT EXISTS public.profiles (
+-- 1. VEYA PROFILES
+CREATE TABLE IF NOT EXISTS public.veya_profiles (
     id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
     display_name TEXT NOT NULL,
     avatar_url TEXT,
@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS public.profiles (
 -- 2. SKILLS
 CREATE TABLE IF NOT EXISTS public.skills (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    creator_id UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
+    creator_id UUID REFERENCES public.veya_profiles(id) ON DELETE SET NULL,
     name TEXT NOT NULL,
     slug TEXT NOT NULL UNIQUE,
     description TEXT NOT NULL,
@@ -48,7 +48,7 @@ CREATE TABLE IF NOT EXISTS public.skill_versions (
     skill_id UUID NOT NULL REFERENCES public.skills(id) ON DELETE CASCADE,
     version_number INTEGER NOT NULL,
     content JSONB NOT NULL,
-    created_by UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
+    created_by UUID REFERENCES public.veya_profiles(id) ON DELETE SET NULL,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     UNIQUE(skill_id, version_number)
 );
@@ -77,7 +77,7 @@ CREATE TABLE IF NOT EXISTS public.skill_tags (
 CREATE TABLE IF NOT EXISTS public.skill_ratings (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     skill_id UUID NOT NULL REFERENCES public.skills(id) ON DELETE CASCADE,
-    user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES public.veya_profiles(id) ON DELETE CASCADE,
     rating INTEGER CHECK (rating >= 1 AND rating <= 5),
     created_at TIMESTAMPTZ DEFAULT NOW(),
     UNIQUE(skill_id, user_id)
@@ -86,7 +86,7 @@ CREATE TABLE IF NOT EXISTS public.skill_ratings (
 CREATE TABLE IF NOT EXISTS public.skill_reviews (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     skill_id UUID NOT NULL REFERENCES public.skills(id) ON DELETE CASCADE,
-    user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES public.veya_profiles(id) ON DELETE CASCADE,
     content TEXT NOT NULL,
     rating INTEGER CHECK (rating >= 1 AND rating <= 5),
     created_at TIMESTAMPTZ DEFAULT NOW()
@@ -96,7 +96,7 @@ CREATE TABLE IF NOT EXISTS public.skill_reviews (
 CREATE TABLE IF NOT EXISTS public.skill_saves (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     skill_id UUID NOT NULL REFERENCES public.skills(id) ON DELETE CASCADE,
-    user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES public.veya_profiles(id) ON DELETE CASCADE,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     UNIQUE(skill_id, user_id)
 );
@@ -104,7 +104,7 @@ CREATE TABLE IF NOT EXISTS public.skill_saves (
 -- 8. WORKFLOWS & STEPS
 CREATE TABLE IF NOT EXISTS public.workflows (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES public.veya_profiles(id) ON DELETE CASCADE,
     name TEXT NOT NULL,
     description TEXT,
     goal TEXT NOT NULL,
@@ -155,13 +155,13 @@ END;
 $$;
 
 -- ROW LEVEL SECURITY (RLS) POLICIES
-ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.veya_profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.skills ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.workflows ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.workflow_steps ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Public profiles are viewable by everyone" ON public.profiles FOR SELECT USING (true);
-CREATE POLICY "Users can edit own profile" ON public.profiles FOR UPDATE USING (auth.uid() = id);
+CREATE POLICY "Public profiles are viewable by everyone" ON public.veya_profiles FOR SELECT USING (true);
+CREATE POLICY "Users can edit own profile" ON public.veya_profiles FOR UPDATE USING (auth.uid() = id);
 
 CREATE POLICY "Public skills are viewable by everyone" ON public.skills FOR SELECT USING (visibility = 'public' OR creator_id = auth.uid());
 CREATE POLICY "Users can create skills" ON public.skills FOR INSERT WITH CHECK (auth.uid() = creator_id);
