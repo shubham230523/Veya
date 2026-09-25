@@ -36,7 +36,7 @@ export default function LibraryScreen() {
     setSavedSkills(saved);
 
     const all = await skillService.getSkills();
-    const custom = all.filter((s) => s.source.type === 'user_created');
+    const custom = all.filter((s) => s.source?.type === 'user_created' || s.id.startsWith('skill-custom-'));
     setCreatedSkills(custom);
   };
 

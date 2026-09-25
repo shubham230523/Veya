@@ -62,7 +62,7 @@ export interface CanonicalSkill {
   category: SkillCategory;
   tags: string[];
   providerCompatibility: ProviderType[];
-  source: SkillSourceInfo;
+  source?: SkillSourceInfo;
   created_at: string;
   updated_at: string;
 }

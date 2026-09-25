@@ -164,7 +164,7 @@ CREATE POLICY "Public profiles are viewable by everyone" ON public.veya_profiles
 CREATE POLICY "Users can edit own profile" ON public.veya_profiles FOR UPDATE USING (auth.uid() = id);
 
 CREATE POLICY "Public skills are viewable by everyone" ON public.skills FOR SELECT USING (visibility = 'public' OR creator_id = auth.uid());
-CREATE POLICY "Users can create skills" ON public.skills FOR INSERT WITH CHECK (auth.uid() = creator_id);
+CREATE POLICY "Users can create skills" ON public.skills FOR INSERT WITH CHECK (visibility = 'public' OR creator_id IS NULL OR auth.uid() = creator_id);
 CREATE POLICY "Users can edit own skills" ON public.skills FOR UPDATE USING (auth.uid() = creator_id);
 
 CREATE POLICY "Users can view own workflows" ON public.workflows FOR SELECT USING (auth.uid() = user_id);

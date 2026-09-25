@@ -118,9 +118,12 @@ Return ONLY a JSON object matching this schema:
       return;
     }
 
+    const baseSlug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'custom-skill';
+    const slug = `${baseSlug}-${Date.now().toString().slice(-4)}`;
+
     const created = await skillService.createSkill({
       name,
-      slug: name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+      slug,
       description,
       objective,
       instructions,

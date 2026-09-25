@@ -7,13 +7,17 @@ import {
   SafeAreaView,
   FlatList,
   useWindowDimensions,
+  TouchableOpacity,
 } from 'react-native';
-import { Search, Sparkles } from 'lucide-react-native';
+import { Search, Sparkles, Globe, Download } from 'lucide-react-native';
 import { useTheme, spacing, radius, palette } from '../../core/theme';
 import { Input } from '../../components/ui/Input';
 import { Chip } from '../../components/ui/Chip';
+import { Button } from '../../components/ui/Button';
+import { Modal } from '../../components/ui/Modal';
 import { Container } from '../../components/ui/Container';
 import { SkillCard } from '../../components/SkillCard';
+import { useToast } from '../../components/ui/Toast';
 import { skillService } from '../../features/skills/skillService';
 import { CanonicalSkill, SkillCategory } from '../../types/skill';
 
@@ -31,6 +35,7 @@ const CATEGORIES: (SkillCategory | 'All')[] = [
 
 export default function DiscoverScreen() {
   const { colors } = useTheme();
+  const { showToast } = useToast();
   const { width } = useWindowDimensions();
   const isDesktop = width >= 768;
 
@@ -38,6 +43,10 @@ export default function DiscoverScreen() {
   const [selectedCategory, setSelectedCategory] = useState<SkillCategory | 'All'>('All');
   const [skills, setSkills] = useState<CanonicalSkill[]>([]);
   const [loading, setLoading] = useState(false);
+
+  const [importModalVisible, setImportModalVisible] = useState(false);
+  const [importUrl, setImportUrl] = useState('');
+  const [importing, setImporting] = useState(false);
 
   useEffect(() => {
     fetchSkills();
@@ -56,14 +65,42 @@ export default function DiscoverScreen() {
     }
   };
 
+  const handleImportFromUrl = async () => {
+    if (!importUrl.trim()) return;
+    setImporting(true);
+
+    try {
+      const imported = await skillService.importSkillFromUrl(importUrl);
+      setImportModalVisible(false);
+      setImportUrl('');
+      showToast(`Successfully imported "${imported.name}" from web!`, 'success');
+      fetchSkills();
+    } catch (err: any) {
+      showToast(err.message || 'Failed to import skill from URL', 'error');
+    } finally {
+      setImporting(false);
+    }
+  };
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.bg }]}>
       <Container maxWidth={960}>
         <View style={styles.header}>
-          <Text style={[styles.title, { color: colors.textPrimary }]}>Discover Skills</Text>
-          <Text style={[styles.subtitle, { color: colors.textMuted }]}>
-            Search and filter universal AI skills across categories.
-          </Text>
+          <View style={styles.titleRow}>
+            <View>
+              <Text style={[styles.title, { color: colors.textPrimary }]}>Discover Skills</Text>
+              <Text style={[styles.subtitle, { color: colors.textMuted }]}>
+                Search Supabase skills or import prompts from GitHub & Web.
+              </Text>
+            </View>
+
+            <Button
+              icon={<Globe color="#FFFFFF" size={14} />}
+              onPress={() => setImportModalVisible(true)}
+              size="sm"
+              title="Import Web Skill"
+            />
+          </View>
 
           {/* Search Bar */}
           <Input
@@ -111,8 +148,14 @@ export default function DiscoverScreen() {
             <View style={styles.emptyContainer}>
               <Text style={[styles.emptyTitle, { color: colors.textPrimary }]}>No Skills Found</Text>
               <Text style={[styles.emptyDesc, { color: colors.textMuted }]}>
-                Try adjusting your search filters or create a new custom skill.
+                Try adjusting your search filters or click "Import Web Skill" to import any GitHub/web prompt URL!
               </Text>
+              <Button
+                icon={<Download color="#FFFFFF" size={14} />}
+                onPress={() => setImportModalVisible(true)}
+                style={{ marginTop: spacing.md }}
+                title="Import Prompt from Web URL"
+              />
             </View>
           }
           numColumns={isDesktop ? 2 : 1}
@@ -123,6 +166,30 @@ export default function DiscoverScreen() {
           )}
         />
       </Container>
+
+      {/* Import Modal */}
+      <Modal
+        onClose={() => setImportModalVisible(false)}
+        title="Import Skill from GitHub / Web URL"
+        visible={importModalVisible}
+      >
+        <Text style={[styles.modalSub, { color: colors.textSecondary }]}>
+          Paste any raw GitHub prompt URL or public prompt link. OpenRouter AI will parse, security-scan, and normalize it into a Canonical Skill in your database.
+        </Text>
+
+        <Input
+          label="Public Prompt URL / Raw GitHub Link"
+          onChangeText={setImportUrl}
+          placeholder="e.g. https://raw.githubusercontent.com/.../prompt.md"
+          value={importUrl}
+        />
+
+        <Button
+          loading={importing}
+          onPress={handleImportFromUrl}
+          title="Import & Save to Supabase"
+        />
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -135,10 +202,16 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     paddingBottom: spacing.sm,
   },
+  titleRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: spacing.xs,
+  },
   title: {
     fontSize: 24,
     fontWeight: '800',
-    marginBottom: spacing.xs,
+    marginBottom: 2,
   },
   subtitle: {
     fontSize: 13,
@@ -198,5 +271,11 @@ const styles = StyleSheet.create({
   emptyDesc: {
     fontSize: 13,
     textAlign: 'center',
+    maxWidth: 400,
+  },
+  modalSub: {
+    fontSize: 13,
+    lineHeight: 18,
+    marginBottom: spacing.md,
   },
 });
