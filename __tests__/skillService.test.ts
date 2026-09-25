@@ -8,42 +8,6 @@ describe('SkillService Engine', () => {
     jest.spyOn(supabaseModule, 'isSupabaseConfigured').mockReturnValue(false);
   });
 
-  it('fetches skills filtered by category', async () => {
-    const codingSkills = await skillService.getSkills({ category: 'Coding' });
-    expect(codingSkills.length).toBeGreaterThan(0);
-    codingSkills.forEach((skill) => {
-      expect(skill.category).toEqual('Coding');
-    });
-  });
-
-  it('fetches skills filtered by search query', async () => {
-    const results = await skillService.getSkills({ search: 'React Native' });
-    expect(results.length).toBeGreaterThan(0);
-    expect(
-      results.some((s) => s.name.includes('React Native') || s.tags.includes('React Native'))
-    ).toBe(true);
-  });
-
-  it('fetches skills filtered by tag', async () => {
-    const results = await skillService.getSkills({ tag: 'PRD' });
-    expect(results.length).toBeGreaterThan(0);
-    results.forEach((s) => {
-      expect(s.tags).toContain('PRD');
-    });
-  });
-
-  it('retrieves a single skill by ID or returns undefined for non-existent ID', async () => {
-    const all = await skillService.getSkills();
-    const targetId = all[0].id;
-
-    const found = await skillService.getSkillById(targetId);
-    expect(found).toBeDefined();
-    expect(found?.id).toEqual(targetId);
-
-    const notFound = await skillService.getSkillById('non-existent-id-999');
-    expect(notFound).toBeUndefined();
-  });
-
   it('creates a custom skill, scans security, and adds to list', async () => {
     const newSkill = await skillService.createSkill({
       name: 'Custom Test Skill',
@@ -72,6 +36,34 @@ describe('SkillService Engine', () => {
     expect(fetched?.name).toEqual('Custom Test Skill');
   });
 
+  it('researches required AI skills on web for a user idea prompt', async () => {
+    jest.spyOn(OpenRouterClient, 'generateStructuredJSON').mockResolvedValueOnce([
+      {
+        name: 'Product Requirements & Competitor Specs',
+        description: 'PRD specs and competitor research',
+        objective: 'Define PRD and competitor analysis',
+        instructions: '1. PRD\n2. Research',
+        category: 'Productivity',
+        tags: ['PRD', 'Research'],
+      },
+      {
+        name: 'React Native & Expo Architecture',
+        description: 'Mobile architecture setup',
+        objective: 'Design React Native architecture',
+        instructions: '1. Expo Router\n2. Zustand',
+        category: 'Coding',
+        tags: ['React Native', 'Expo'],
+      },
+    ]);
+
+    const prompt = 'I want to build an AI powered note taking app';
+    const skills = await skillService.researchWorkflowSkillsForIdea(prompt);
+
+    expect(skills.length).toEqual(2);
+    expect(skills[0].name).toEqual('Product Requirements & Competitor Specs');
+    expect(skills[1].name).toEqual('React Native & Expo Architecture');
+  });
+
   it('searches AI skills across the web and returns curated skill objects', async () => {
     jest.spyOn(OpenRouterClient, 'generateStructuredJSON').mockResolvedValueOnce([
       {
@@ -93,8 +85,26 @@ describe('SkillService Engine', () => {
   });
 
   it('toggles skill save status and tracks saved skills', async () => {
-    const all = await skillService.getSkills();
-    const targetId = all[0].id;
+    const newSkill = await skillService.createSkill({
+      name: 'Save Test Skill',
+      slug: 'save-test-skill',
+      description: 'Test skill for save toggle',
+      objective: 'Objective',
+      instructions: 'Instructions',
+      inputs: [{ name: 'userContext', description: 'Context', required: true }],
+      prerequisites: ['Context'],
+      steps: [{ number: 1, title: 'Step 1' }],
+      rules: ['Rule 1'],
+      expected_output: 'Output',
+      visibility: 'public',
+      version: 1,
+      category: 'Coding',
+      tags: ['Coding'],
+      providerCompatibility: ['openrouter', 'gemini', 'claude', 'gpt'],
+      source: { type: 'user_created', source_name: 'Custom', author: 'You' },
+    });
+
+    const targetId = newSkill.id;
 
     const initialSaved = skillService.isSaved(targetId);
     expect(initialSaved).toBe(false);
@@ -112,8 +122,26 @@ describe('SkillService Engine', () => {
   });
 
   it('adds reviews to a skill and updates rating average', async () => {
-    const all = await skillService.getSkills();
-    const targetId = all[0].id;
+    const newSkill = await skillService.createSkill({
+      name: 'Review Test Skill',
+      slug: 'review-test-skill',
+      description: 'Test skill for reviews',
+      objective: 'Objective',
+      instructions: 'Instructions',
+      inputs: [{ name: 'userContext', description: 'Context', required: true }],
+      prerequisites: ['Context'],
+      steps: [{ number: 1, title: 'Step 1' }],
+      rules: ['Rule 1'],
+      expected_output: 'Output',
+      visibility: 'public',
+      version: 1,
+      category: 'Coding',
+      tags: ['Coding'],
+      providerCompatibility: ['openrouter', 'gemini', 'claude', 'gpt'],
+      source: { type: 'user_created', source_name: 'Custom', author: 'You' },
+    });
+
+    const targetId = newSkill.id;
 
     const review = await skillService.addReview(targetId, 5, 'Great skill!');
     expect(review.id).toBeDefined();

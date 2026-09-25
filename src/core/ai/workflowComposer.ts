@@ -2,16 +2,54 @@ import { Workflow, WorkflowStep, ParsedIntent } from '../../types/workflow';
 import { CanonicalSkill, ProviderType } from '../../types/skill';
 
 export const COMPONENT_ORDER_PRIORITY: Record<string, number> = {
-  Productivity: 1, // Requirements / PRD
-  Design: 2, // UX / Wireframe
-  Business: 3, // SaaS Strategy
-  Coding: 4, // Architecture & Code
-  AI: 5, // AI Integration
-  Creator: 6,
-  Testing: 7, // Test Suite
+  Productivity: 1, // Requirements / PRD / Specs
+  Research: 2, // Competitor & Market Research
+  Design: 3, // UX / Wireframes / UI Layout
+  Business: 4, // SaaS Strategy & Monetization
+  Coding: 5, // Architecture & Code Development
+  AI: 6, // AI Integration & Feature Logic
+  Creator: 7,
+  Testing: 8, // Test Suite & Quality Audit
+  Deployment: 9, // Build & Deployment Pipeline
 };
 
 export class WorkflowComposer {
+  static composeFromResearchedSkills(
+    ideaPrompt: string,
+    skills: CanonicalSkill[],
+    provider: ProviderType = 'claude'
+  ): Workflow {
+    // Sort skills logically by component order priority
+    const orderedSkills = [...skills].sort((a, b) => {
+      const priorityA = COMPONENT_ORDER_PRIORITY[a.category] || 99;
+      const priorityB = COMPONENT_ORDER_PRIORITY[b.category] || 99;
+      return priorityA - priorityB;
+    });
+
+    const workflowId = `wf-${Date.now()}`;
+
+    const steps: WorkflowStep[] = orderedSkills.map((skill, index) => ({
+      id: `step-${index + 1}`,
+      workflow_id: workflowId,
+      skill_id: skill.id,
+      position: index + 1,
+      enabled: true,
+      skill,
+    }));
+
+    return {
+      id: workflowId,
+      user_id: 'user-current',
+      name: `Workflow: ${ideaPrompt.slice(0, 35)}...`,
+      description: `AI Researched Workflow for: "${ideaPrompt}"`,
+      goal: ideaPrompt,
+      provider_id: provider,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      steps,
+    };
+  }
+
   static composeFromIntent(
     intent: ParsedIntent,
     availableSkills: CanonicalSkill[],

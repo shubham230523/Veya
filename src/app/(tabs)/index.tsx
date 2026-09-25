@@ -46,14 +46,18 @@ export default function HomeScreen() {
 
     setLoading(true);
     try {
-      const allSkills = await skillService.getSkills();
-      const parsedIntent = await parseIntentWithAI(textToParse, allSkills);
-      const workflow = WorkflowComposer.composeFromIntent(parsedIntent, allSkills);
+      // Dynamically research all required skills for this specific idea from the web/LLM ecosystem
+      const researchedSkills = await skillService.researchWorkflowSkillsForIdea(textToParse);
+
+      // Compose the multi-step workflow pipeline from researched skills
+      const workflow = WorkflowComposer.composeFromResearchedSkills(textToParse, researchedSkills);
 
       router.push({
         pathname: '/workflow/[id]',
         params: { id: workflow.id, initialWorkflow: JSON.stringify(workflow) },
       });
+    } catch (err: any) {
+      console.error('[Home Screen] Error in handleComposeWorkflow:', err.message);
     } finally {
       setLoading(false);
     }
