@@ -18,6 +18,130 @@ export class OpenRouterClient {
     return key.trim();
   }
 
+  static async generatePromptResponseStream(
+    prompt: string,
+    onChunk: (chunk: string, accumulated: string) => void,
+    provider: ProviderType = DEFAULT_PROVIDER_ID,
+    timeoutMs: number = 120000
+  ): Promise<OpenRouterResponse> {
+    const startTime = Date.now();
+    const apiKey = this.getApiKey();
+    const providerInfo = PROVIDERS[provider] || PROVIDERS['openrouter'];
+    const model = providerInfo.modelIdentifier;
+
+    console.log(`[Veya AI Engine Stream] ⚡ Requesting stream from model: ${model}`);
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => {
+      console.warn(`[Veya AI Engine Stream] ⚠️ Request to ${model} exceeded timeout of ${timeoutMs}ms.`);
+      controller.abort();
+    }, timeoutMs);
+
+    try {
+      const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${apiKey}`,
+          'HTTP-Referer': 'https://veya.app',
+          'X-Title': 'Veya AI Skill Engine',
+        },
+        body: JSON.stringify({
+          model,
+          messages: [{ role: 'user', content: prompt }],
+          temperature: 0.2,
+          stream: true,
+        }),
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        const errText = await response.text();
+        console.error(`[Veya AI Engine Stream] ❌ OpenRouter HTTP Error (${response.status}):`, errText);
+        throw new Error(`OpenRouter Streaming API Error (${response.status}): ${errText}`);
+      }
+
+      let accumulated = '';
+
+      if (response.body && typeof response.body.getReader === 'function') {
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder('utf-8');
+        let done = false;
+        let buffer = '';
+
+        while (!done) {
+          const { value, done: doneReading } = await reader.read();
+          done = doneReading;
+
+          if (value) {
+            buffer += decoder.decode(value, { stream: true });
+            const lines = buffer.split('\n');
+            buffer = lines.pop() || '';
+
+            for (const line of lines) {
+              const cleanLine = line.trim();
+              if (!cleanLine || cleanLine.startsWith(':')) continue;
+              if (cleanLine === 'data: [DONE]') break;
+
+              if (cleanLine.startsWith('data: ')) {
+                try {
+                  const jsonStr = cleanLine.slice(6);
+                  const parsed = JSON.parse(jsonStr);
+                  const token = parsed.choices?.[0]?.delta?.content || '';
+                  if (token) {
+                    accumulated += token;
+                    onChunk(token, accumulated);
+                  }
+                } catch (_) {
+                  // ignore partial JSON SSE fragments
+                }
+              }
+            }
+          }
+        }
+      } else {
+        const data = await response.json();
+        accumulated = data.choices?.[0]?.message?.content || '';
+        onChunk(accumulated, accumulated);
+      }
+
+      console.log(`[Veya AI Engine Stream] ✅ Stream completed in ${Date.now() - startTime}ms (${accumulated.length} chars).`);
+
+      return {
+        content: accumulated,
+        providerUsed: provider,
+        model,
+      };
+    } catch (err: any) {
+      clearTimeout(timeoutId);
+      if (err.name === 'AbortError') {
+        throw new Error(`OpenRouter model (${model}) request timed out after ${Math.round(timeoutMs / 1000)}s.`);
+      }
+      throw err;
+    }
+  }
+
+  static async generateStructuredJSONStream<T = any>(
+    systemInstruction: string,
+    userPrompt: string,
+    onChunk: (chunkText: string, accumulated: string) => void,
+    provider: ProviderType = DEFAULT_PROVIDER_ID,
+    timeoutMs: number = 60000
+  ): Promise<T> {
+    const fullPrompt = `${systemInstruction}\n\nUSER PROMPT:\n${userPrompt}\n\nCRITICAL: Return ONLY raw valid JSON. Do not include markdown codeblocks or surrounding conversational text.`;
+
+    const res = await this.generatePromptResponseStream(
+      fullPrompt,
+      onChunk,
+      provider,
+      timeoutMs
+    );
+
+    return cleanAndParseJSON<T>(res.content);
+  }
+
   static async generatePromptResponse(
     prompt: string,
     provider: ProviderType = DEFAULT_PROVIDER_ID,

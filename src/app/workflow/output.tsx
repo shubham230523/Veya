@@ -63,10 +63,18 @@ export default function GeneratedOutputScreen() {
 
   const handleRunAiSimulation = async () => {
     setRunningAi(true);
+    setAiResult('⚡ Connecting to OpenRouter stream...');
     try {
-      const res = await OpenRouterClient.generatePromptResponse(output.formattedPrompt, provider);
-      setAiResult(res.content);
-      showToast('AI Model Execution Test Complete', 'success');
+      await OpenRouterClient.generatePromptResponseStream(
+        output.formattedPrompt,
+        (_chunk, accumulated) => {
+          setAiResult(accumulated);
+        },
+        provider
+      );
+      showToast('AI Model Streaming Execution Complete', 'success');
+    } catch (err: any) {
+      showToast(err.message || 'AI streaming failed', 'error');
     } finally {
       setRunningAi(false);
     }

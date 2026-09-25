@@ -37,7 +37,7 @@ describe('SkillService Engine', () => {
   });
 
   it('researches required AI skills on web for a user idea prompt', async () => {
-    jest.spyOn(OpenRouterClient, 'generateStructuredJSON').mockResolvedValueOnce([
+    jest.spyOn(OpenRouterClient, 'generateStructuredJSONStream').mockResolvedValueOnce([
       {
         name: 'Product Requirements & Competitor Specs',
         description: 'PRD specs and competitor research',

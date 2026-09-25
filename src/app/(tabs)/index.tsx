@@ -8,6 +8,7 @@ import {
   SafeAreaView,
   TextInput,
   useWindowDimensions,
+  ActivityIndicator,
 } from 'react-native';
 import { router } from 'expo-router';
 import { Sparkles, ArrowRight, Layers, Compass, PlusCircle } from 'lucide-react-native';
@@ -29,6 +30,7 @@ export default function HomeScreen() {
 
   const [goalPrompt, setGoalPrompt] = useState('');
   const [loading, setLoading] = useState(false);
+  const [streamProgress, setStreamProgress] = useState<string>('');
   const [popularSkills, setPopularSkills] = useState<CanonicalSkill[]>([]);
 
   useEffect(() => {
@@ -45,9 +47,19 @@ export default function HomeScreen() {
     if (!textToParse.trim()) return;
 
     setLoading(true);
+    setStreamProgress('⚡ Connecting to OpenRouter Stream...');
     try {
-      // Dynamically research all required skills for this specific idea from the web/LLM ecosystem
-      const researchedSkills = await skillService.researchWorkflowSkillsForIdea(textToParse);
+      // Dynamically research all required skills for this specific idea with streaming progress
+      const researchedSkills = await skillService.researchWorkflowSkillsForIdea(
+        textToParse,
+        (accumulatedText) => {
+          const cleanedText = accumulatedText.replace(/\s+/g, ' ');
+          const previewText = cleanedText.length > 130
+            ? '...' + cleanedText.slice(-130)
+            : cleanedText;
+          setStreamProgress(`Streaming AI Research: ${previewText}`);
+        }
+      );
 
       // Compose the multi-step workflow pipeline from researched skills
       const workflow = WorkflowComposer.composeFromResearchedSkills(textToParse, researchedSkills);
@@ -60,6 +72,7 @@ export default function HomeScreen() {
       console.error('[Home Screen] Error in handleComposeWorkflow:', err.message);
     } finally {
       setLoading(false);
+      setStreamProgress('');
     }
   };
 
@@ -113,6 +126,15 @@ export default function HomeScreen() {
               style={styles.actionButton}
               title="Compose Workflow"
             />
+
+            {loading && Boolean(streamProgress) && (
+              <View style={[styles.streamProgressBox, { backgroundColor: colors.surfaceHover, borderColor: colors.surfaceBorder }]}>
+                <ActivityIndicator color={palette.primaryLight} size="small" />
+                <Text numberOfLines={2} style={[styles.streamProgressText, { color: palette.primaryLight }]}>
+                  {streamProgress}
+                </Text>
+              </View>
+            )}
 
             {/* Quick suggestions */}
             <Text style={[styles.quickLabel, { color: colors.textMuted }]}>OR TRY A SUGGESTED GOAL:</Text>
@@ -288,7 +310,22 @@ const styles = StyleSheet.create({
     textAlignVertical: 'top',
   },
   actionButton: {
+    marginBottom: spacing.md,
+  },
+  streamProgressBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    padding: spacing.md,
+    borderRadius: radius.md,
+    borderWidth: 1,
     marginBottom: spacing.xl,
+  },
+  streamProgressText: {
+    fontSize: 12,
+    fontWeight: '600',
+    flex: 1,
+    fontFamily: 'monospace',
   },
   quickLabel: {
     fontSize: 11,

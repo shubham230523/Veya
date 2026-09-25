@@ -159,7 +159,10 @@ class SkillService {
     return newSkill;
   }
 
-  async researchWorkflowSkillsForIdea(ideaPrompt: string): Promise<CanonicalSkill[]> {
+  async researchWorkflowSkillsForIdea(
+    ideaPrompt: string,
+    onProgress?: (accumulatedText: string) => void
+  ): Promise<CanonicalSkill[]> {
     const cleanIdea = ideaPrompt.trim();
     if (!cleanIdea) return [];
 
@@ -198,12 +201,17 @@ Return ONLY a JSON array of skill objects matching this schema:
 ]`;
 
     try {
-      console.log(`[Veya AI Workflow Research] Requesting structured JSON from OpenRouter API...`);
-      const results = await OpenRouterClient.generateStructuredJSON<any[]>(
+      console.log(`[Veya AI Workflow Research] Requesting streaming JSON from OpenRouter API...`);
+      const results = await OpenRouterClient.generateStructuredJSONStream<any[]>(
         systemInstruction,
         `PRODUCT IDEA GOAL: "${cleanIdea}"`,
+        (_chunk, accumulated) => {
+          if (onProgress) {
+            onProgress(accumulated);
+          }
+        },
         undefined,
-        25000
+        30000
       );
 
       if (!Array.isArray(results) || results.length === 0) {
