@@ -90,7 +90,7 @@ export class OpenRouterClient {
     systemInstruction: string,
     userPrompt: string,
     provider: ProviderType = DEFAULT_PROVIDER_ID,
-    timeoutMs: number = 120000
+    timeoutMs: number = 60000
   ): Promise<T> {
     const startTime = Date.now();
     const apiKey = this.getApiKey();
@@ -140,12 +140,8 @@ export class OpenRouterClient {
 
       console.log(`[Veya AI Engine] [Step 4/4] Extracting & parsing JSON payload (${rawContent.length} chars)...`);
 
-      // Extract JSON block if enclosed in markdown
-      const jsonMatch = rawContent.match(/(\{[\s\S]*\}|\[[\s\S]*\])/);
-      const jsonString = jsonMatch ? jsonMatch[0] : rawContent.trim();
-
       try {
-        const parsed = JSON.parse(jsonString) as T;
+        const parsed = cleanAndParseJSON<T>(rawContent);
         console.log(`[Veya AI Engine] ✅ Successfully generated & parsed structured JSON in ${Date.now() - startTime}ms.`);
         return parsed;
       } catch (parseErr) {
@@ -165,4 +161,75 @@ export class OpenRouterClient {
       throw err;
     }
   }
+}
+
+export function cleanAndParseJSON<T>(rawContent: string): T {
+  if (!rawContent || !rawContent.trim()) {
+    throw new Error('OpenRouter model returned empty response content.');
+  }
+
+  const trimmed = rawContent.trim();
+
+  // 1. Direct JSON parse
+  try {
+    return JSON.parse(trimmed) as T;
+  } catch (_) {}
+
+  // 2. Extract inner content from ```json ... ``` or ``` ... ```
+  const codeBlockMatch = trimmed.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
+  if (codeBlockMatch && codeBlockMatch[1]) {
+    const innerContent = codeBlockMatch[1].trim();
+    try {
+      return JSON.parse(innerContent) as T;
+    } catch (_) {}
+
+    try {
+      return JSON.parse(sanitizeJsonString(innerContent)) as T;
+    } catch (_) {}
+  }
+
+  // 3. Find outer boundaries of first '{' ... '}' or '[' ... ']'
+  const firstCurly = trimmed.indexOf('{');
+  const firstSquare = trimmed.indexOf('[');
+
+  let jsonCandidate = '';
+
+  if (firstCurly !== -1 && (firstSquare === -1 || firstCurly < firstSquare)) {
+    const lastCurly = trimmed.lastIndexOf('}');
+    if (lastCurly > firstCurly) {
+      jsonCandidate = trimmed.slice(firstCurly, lastCurly + 1);
+    }
+  } else if (firstSquare !== -1) {
+    const lastSquare = trimmed.lastIndexOf(']');
+    if (lastSquare > firstSquare) {
+      jsonCandidate = trimmed.slice(firstSquare, lastSquare + 1);
+    }
+  }
+
+  if (jsonCandidate) {
+    try {
+      return JSON.parse(jsonCandidate) as T;
+    } catch (_) {}
+
+    try {
+      return JSON.parse(sanitizeJsonString(jsonCandidate)) as T;
+    } catch (_) {}
+  }
+
+  // 4. Sanitize whole trimmed text
+  try {
+    return JSON.parse(sanitizeJsonString(trimmed)) as T;
+  } catch (_) {}
+
+  throw new Error('OpenRouter model returned malformed JSON structure.');
+}
+
+function sanitizeJsonString(str: string): string {
+  return str
+    .replace(/\/\/.*/g, '')
+    .replace(/,\s*([}\]])/g, '$1')
+    .replace(/[\x00-\x1F\x7F-\x9F]/g, (ch) => {
+      if (ch === '\n' || ch === '\r' || ch === '\t') return ch;
+      return '';
+    });
 }

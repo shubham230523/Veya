@@ -94,8 +94,8 @@ describe('OpenRouterClient Engine', () => {
     expect(result.category).toEqual('Coding');
   });
 
-  it('extracts JSON when returned inside markdown code blocks', async () => {
-    const rawContent = '```json\n{"status": "ok", "count": 5}\n```';
+  it('extracts JSON when returned inside markdown code blocks with surrounding text', async () => {
+    const rawContent = 'Here is your response:\n```json\n{\n  "status": "ok",\n  "count": 5,\n}\n```\nHope this helps!';
 
     const mockApiResponse = {
       choices: [

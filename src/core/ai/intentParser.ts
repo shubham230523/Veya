@@ -104,7 +104,9 @@ Return a JSON object with this EXACT schema:
 
     const aiParsed = await OpenRouterClient.generateStructuredJSON<ParsedIntent>(
       systemInstruction,
-      rawPrompt
+      rawPrompt,
+      undefined,
+      15000
     );
 
     return {
