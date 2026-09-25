@@ -270,76 +270,87 @@ Return ONLY a JSON array of skill objects matching this schema:
   }
 
   private generateFallbackSkillsForIdea(cleanIdea: string): CanonicalSkill[] {
-    const isMobile = cleanIdea.toLowerCase().includes('app') || cleanIdea.toLowerCase().includes('mobile');
-    const hasAI = cleanIdea.toLowerCase().includes('ai') || cleanIdea.toLowerCase().includes('gpt') || cleanIdea.toLowerCase().includes('transcrib');
+    const lowerIdea = cleanIdea.toLowerCase();
+    const isMobile = lowerIdea.includes('app') || lowerIdea.includes('mobile') || lowerIdea.includes('note');
+    const isAudio = lowerIdea.includes('audio') || lowerIdea.includes('transcrib') || lowerIdea.includes('voice') || lowerIdea.includes('speech');
+    const isNotes = lowerIdea.includes('note') || lowerIdea.includes('summar') || lowerIdea.includes('organiz');
 
-    return [
-      {
-        id: `fallback-prd-${Date.now()}`,
-        name: 'Product Requirements & Competitor Specs',
-        slug: 'product-requirements-spec',
-        description: `Synthesize PRD specs, competitor research, and user stories for "${cleanIdea}"`,
-        objective: 'Define clear user stories, functional requirements, competitor research, and MVP boundaries.',
-        instructions: `1. Define target audience for ${cleanIdea}.\n2. Conduct competitor research and market positioning.\n3. Outline MVP scope and user personas.`,
-        inputs: [{ name: 'userContext', description: 'Idea context', required: true }],
-        prerequisites: ['Product Goal'],
-        steps: [{ number: 1, title: 'PRD & Market Research' }],
-        rules: ['Keep MVP actionable'],
-        expected_output: 'Structured PRD and competitor analysis document',
-        visibility: 'public',
-        version: 1,
-        rating_average: 5.0,
-        rating_count: 1,
-        usage_count: 10,
-        save_count: 1,
-        security_scan_status: 'clean',
-        security_scanned_at: new Date().toISOString(),
-        category: 'Productivity',
-        tags: ['Productivity', 'PRD', 'Planning', 'Competitor Research'],
-        providerCompatibility: ['openrouter', 'gemini', 'claude', 'gpt'],
-        source: { type: 'official', source_name: 'Veya AI' },
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      },
-      {
-        id: `fallback-arch-${Date.now()}`,
-        name: isMobile ? 'React Native & Expo Mobile Architecture' : 'Full-Stack Software Architecture',
-        slug: 'system-architecture',
-        description: `Design software architecture for "${cleanIdea}"`,
-        objective: 'Define clean frontend, state management, and backend API routing.',
-        instructions: `1. Design system component architecture.\n2. Set up navigation and state management.\n3. Configure API client layer.`,
-        inputs: [{ name: 'userContext', description: 'PRD specs', required: true }],
-        prerequisites: ['PRD'],
-        steps: [{ number: 1, title: 'Architecture Blueprint' }],
-        rules: ['Follow clean code modularity'],
-        expected_output: 'TypeScript architecture specification',
-        visibility: 'public',
-        version: 1,
-        rating_average: 5.0,
-        rating_count: 1,
-        usage_count: 10,
-        save_count: 1,
-        security_scan_status: 'clean',
-        security_scanned_at: new Date().toISOString(),
-        category: 'Coding',
-        tags: ['Coding', 'Architecture', 'React Native'],
-        providerCompatibility: ['openrouter', 'gemini', 'claude', 'gpt'],
-        source: { type: 'official', source_name: 'Veya AI' },
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      },
-      {
-        id: `fallback-feature-${Date.now()}`,
-        name: hasAI ? 'AI Integration & Domain Pipeline Engine' : 'Core Business Logic Engine',
-        slug: 'core-feature-engine',
-        description: `Implement core functionality and AI integrations for "${cleanIdea}"`,
-        objective: 'Build core feature pipelines and API integration hooks.',
-        instructions: `1. Implement main domain logic.\n2. Integrate external services.\n3. Handle error states and validation.`,
-        inputs: [{ name: 'userContext', description: 'Architecture specs', required: true }],
-        prerequisites: ['Architecture'],
-        steps: [{ number: 1, title: 'Core Logic Implementation' }],
-        rules: ['Ensure secure API calls'],
-        expected_output: 'Core implementation code modules',
+    const skills: CanonicalSkill[] = [];
+
+    // Step 1: Product Requirements & Competitor Specs
+    skills.push({
+      id: `fallback-prd-${Date.now()}`,
+      name: 'Product Requirements & Competitor Specs',
+      slug: 'product-requirements-spec',
+      description: `Synthesize PRD specs, competitor research, and user stories for the product concept`,
+      objective: 'Define clear user stories, functional requirements, competitor research, and MVP boundaries.',
+      instructions: `1. Define target audience and user personas.\n2. Conduct competitor research and market positioning.\n3. Outline MVP scope boundaries and acceptance criteria.`,
+      inputs: [{ name: 'userContext', description: 'Idea context', required: true }],
+      prerequisites: ['Product Goal'],
+      steps: [{ number: 1, title: 'PRD & Market Research' }],
+      rules: ['Keep MVP actionable and scoped to core value proposition'],
+      expected_output: 'Structured PRD and competitor analysis document',
+      visibility: 'public',
+      version: 1,
+      rating_average: 5.0,
+      rating_count: 1,
+      usage_count: 10,
+      save_count: 1,
+      security_scan_status: 'clean',
+      security_scanned_at: new Date().toISOString(),
+      category: 'Productivity',
+      tags: ['Productivity', 'PRD', 'Planning', 'Competitor Research'],
+      providerCompatibility: ['openrouter', 'gemini', 'claude', 'gpt'],
+      source: { type: 'official', source_name: 'Veya AI' },
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    });
+
+    // Step 2: System / Mobile Architecture
+    skills.push({
+      id: `fallback-arch-${Date.now()}`,
+      name: isMobile ? 'React Native & Expo Mobile Architecture' : 'Full-Stack Software Architecture',
+      slug: 'system-architecture',
+      description: `Design software architecture and state navigation structure`,
+      objective: 'Define clean frontend UI layout, state management, and API routing.',
+      instructions: isMobile
+        ? `1. Configure navigation structure using Expo Router.\n2. Set up Zustand / React state store for session & data management.\n3. Implement reusable UI theme tokens and component hierarchy.`
+        : `1. Design system component architecture.\n2. Set up navigation and state management.\n3. Configure API client layer.`,
+      inputs: [{ name: 'userContext', description: 'PRD specs', required: true }],
+      prerequisites: ['PRD Specs'],
+      steps: [{ number: 1, title: 'Architecture Blueprint' }],
+      rules: ['Follow clean code modularity and cross-platform best practices'],
+      expected_output: 'TypeScript architecture specification and navigation blueprint',
+      visibility: 'public',
+      version: 1,
+      rating_average: 5.0,
+      rating_count: 1,
+      usage_count: 10,
+      save_count: 1,
+      security_scan_status: 'clean',
+      security_scanned_at: new Date().toISOString(),
+      category: 'Coding',
+      tags: ['Coding', 'Architecture', 'React Native'],
+      providerCompatibility: ['openrouter', 'gemini', 'claude', 'gpt'],
+      source: { type: 'official', source_name: 'Veya AI' },
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    });
+
+    // Step 3 (Optional / Specific): Whisper Audio Transcription Pipeline
+    if (isAudio) {
+      skills.push({
+        id: `fallback-audio-${Date.now()}`,
+        name: 'Whisper Audio Transcription Pipeline',
+        slug: 'whisper-audio-transcription-pipeline',
+        description: 'Process voice recordings and stream speech-to-text audio transcripts',
+        objective: 'Build reliable audio recording, chunking, and Whisper speech-to-text transcription workflows.',
+        instructions: `1. Configure audio recorder parameters (m4a/wav format, 16kHz sampling).\n2. Stream audio file payload to OpenAI Whisper / OpenRouter speech-to-text endpoint.\n3. Process raw transcript timestamps and clean filler words.`,
+        inputs: [{ name: 'userContext', description: 'Audio source', required: true }],
+        prerequisites: ['Microphone or audio file input'],
+        steps: [{ number: 1, title: 'Audio Capture & Speech-to-Text Integration' }],
+        rules: ['Handle recording permissions gracefully on mobile devices'],
+        expected_output: 'TypeScript audio recorder controller and Whisper transcription service integration',
         visibility: 'public',
         version: 1,
         rating_average: 5.0,
@@ -349,24 +360,28 @@ Return ONLY a JSON array of skill objects matching this schema:
         security_scan_status: 'clean',
         security_scanned_at: new Date().toISOString(),
         category: 'AI',
-        tags: ['AI', 'Implementation'],
+        tags: ['AI', 'Audio', 'Whisper', 'Transcription'],
         providerCompatibility: ['openrouter', 'gemini', 'claude', 'gpt'],
         source: { type: 'official', source_name: 'Veya AI' },
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
-      },
-      {
-        id: `fallback-test-${Date.now()}`,
-        name: 'Database Design, Testing & Deployment Pipeline',
-        slug: 'database-testing-deployment',
-        description: `Configure database schema, test suite, and deployment pipeline for "${cleanIdea}"`,
-        objective: 'Design Supabase database schema, verify unit tests, security posture, and deployment scripts.',
-        instructions: `1. Define database schema and RLS policies.\n2. Set up unit test suite.\n3. Configure build and deployment pipeline.`,
-        inputs: [{ name: 'userContext', description: 'Codebase', required: true }],
-        prerequisites: ['Implementation'],
-        steps: [{ number: 1, title: 'Validation & Deployment' }],
-        rules: ['Ensure tests pass before deployment'],
-        expected_output: 'Test report, SQL migrations, and deployment configuration scripts',
+      });
+    }
+
+    // Step 4 (Optional / Specific): AI Note Summarizer & Organizer
+    if (isNotes) {
+      skills.push({
+        id: `fallback-notes-${Date.now()}`,
+        name: 'OpenRouter AI Note Summarizer & Organizer',
+        slug: 'openrouter-ai-note-organizer',
+        description: 'Transform raw transcripts into structured markdown notes with bullet action items',
+        objective: 'Extract summary topics, action items, and structured note sections from raw text.',
+        instructions: `1. Analyze transcript text to extract key discussion points.\n2. Generate structured Markdown with Executive Summary, Key Takeaways, and Bulleted Action Items.\n3. Categorize note with auto-generated hashtags and title.`,
+        inputs: [{ name: 'userContext', description: 'Raw transcript text', required: true }],
+        prerequisites: ['Raw transcript text'],
+        steps: [{ number: 1, title: 'AI Note Summarization & Action Item Extraction' }],
+        rules: ['Format output in clean Markdown syntax without hallucinating facts'],
+        expected_output: 'Structured Markdown note with executive summary and action items',
         visibility: 'public',
         version: 1,
         rating_average: 5.0,
@@ -375,14 +390,45 @@ Return ONLY a JSON array of skill objects matching this schema:
         save_count: 1,
         security_scan_status: 'clean',
         security_scanned_at: new Date().toISOString(),
-        category: 'Testing',
-        tags: ['Testing', 'Database', 'Deployment'],
+        category: 'AI',
+        tags: ['AI', 'Notes', 'Summarization', 'Organize'],
         providerCompatibility: ['openrouter', 'gemini', 'claude', 'gpt'],
         source: { type: 'official', source_name: 'Veya AI' },
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
-      },
-    ];
+      });
+    }
+
+    // Step 5: Database Design, Testing & Deployment Pipeline
+    skills.push({
+      id: `fallback-test-${Date.now()}`,
+      name: 'Database Schema, Testing & Deployment Pipeline',
+      slug: 'database-testing-deployment',
+      description: `Configure Supabase PostgreSQL schema, RLS policies, unit tests, and build deployment`,
+      objective: 'Design database schema with Row Level Security, set up unit tests, and configure build deployment scripts.',
+      instructions: `1. Define PostgreSQL schema for notes & audio metadata with Supabase Row Level Security (RLS) policies.\n2. Set up unit test suite and API integration tests.\n3. Configure build and deployment pipeline scripts (e.g. EAS / CI/CD).`,
+      inputs: [{ name: 'userContext', description: 'Codebase', required: true }],
+      prerequisites: ['Implementation'],
+      steps: [{ number: 1, title: 'Database, Testing & Deployment Setup' }],
+      rules: ['Ensure Row Level Security is enabled on all database tables'],
+      expected_output: 'PostgreSQL SQL migrations, test suite, and deployment configuration scripts',
+      visibility: 'public',
+      version: 1,
+      rating_average: 5.0,
+      rating_count: 1,
+      usage_count: 10,
+      save_count: 1,
+      security_scan_status: 'clean',
+      security_scanned_at: new Date().toISOString(),
+      category: 'Testing',
+      tags: ['Testing', 'Database', 'Deployment'],
+      providerCompatibility: ['openrouter', 'gemini', 'claude', 'gpt'],
+      source: { type: 'official', source_name: 'Veya AI' },
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    });
+
+    return skills;
   }
 
   async searchWebSkills(query: string): Promise<CanonicalSkill[]> {
