@@ -21,6 +21,7 @@ import {
   FileText,
   List,
   MessageSquare,
+  Send,
 } from 'lucide-react-native';
 import { useTheme, spacing, radius, palette } from '../../core/theme';
 import { Button } from '../../components/ui/Button';
@@ -479,19 +480,43 @@ export default function SkillDetailScreen() {
         title="Rate & Review Skill"
         visible={reviewModalVisible}
       >
-        <Text style={[styles.label, { color: colors.textSecondary }]}>Rating (1-5 Stars)</Text>
-        <Rating interactive onRatingChange={setNewRating} rating={newRating} size={24} />
+        <View style={styles.modalContentBox}>
+          <Text style={[styles.modalLabel, { color: colors.textSecondary }]}>
+            HOW WOULD YOU RATE THIS SKILL?
+          </Text>
 
-        <Input
-          containerStyle={{ marginTop: spacing.md }}
-          label="Your Review"
-          multiline
-          onChangeText={setNewReviewText}
-          placeholder="Share your experience using this skill..."
-          value={newReviewText}
-        />
+          <View
+            style={[
+              styles.ratingSelectBox,
+              { backgroundColor: colors.surfaceHover, borderColor: colors.surfaceBorder },
+            ]}
+          >
+            <Rating
+              interactive
+              onRatingChange={setNewRating}
+              rating={newRating}
+              showScoreLabel
+              size={28}
+            />
+          </View>
 
-        <Button onPress={handleSubmitReview} title="Submit Review" />
+          <Input
+            containerStyle={{ marginTop: spacing.md }}
+            label="YOUR REVIEW"
+            multiline
+            numberOfLines={4}
+            onChangeText={setNewReviewText}
+            placeholder="Share your experience, edge cases, or prompt optimization tips..."
+            value={newReviewText}
+          />
+
+          <Button
+            icon={<Send color="#FFFFFF" size={16} />}
+            onPress={handleSubmitReview}
+            style={{ marginTop: spacing.md }}
+            title="Submit Review"
+          />
+        </View>
       </Modal>
     </SafeAreaView>
   );
@@ -738,9 +763,21 @@ const styles = StyleSheet.create({
   revText: {
     fontSize: 12,
   },
-  label: {
-    fontSize: 12,
-    fontWeight: '600',
+  modalContentBox: {
+    paddingVertical: spacing.xs,
+  },
+  modalLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 0.5,
     marginBottom: spacing.xs,
+    textTransform: 'uppercase',
+  },
+  ratingSelectBox: {
+    padding: spacing.md,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    marginBottom: spacing.xs,
+    alignItems: 'flex-start',
   },
 });

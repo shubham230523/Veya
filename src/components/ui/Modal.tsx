@@ -7,6 +7,10 @@ import {
   StyleSheet,
   TouchableWithoutFeedback,
   ScrollView,
+  Platform,
+  useWindowDimensions,
+  StyleProp,
+  ViewStyle,
 } from 'react-native';
 import { X } from 'lucide-react-native';
 import { useTheme, spacing, radius } from '../../core/theme';
@@ -16,6 +20,8 @@ export interface ModalProps {
   onClose: () => void;
   title?: string;
   children: React.ReactNode;
+  maxWidth?: number;
+  contentStyle?: StyleProp<ViewStyle>;
 }
 
 export const Modal: React.FC<ModalProps> = ({
@@ -23,26 +29,33 @@ export const Modal: React.FC<ModalProps> = ({
   onClose,
   title,
   children,
+  maxWidth = 520,
+  contentStyle,
 }) => {
   const { colors } = useTheme();
+  const { width } = useWindowDimensions();
+  const isWebOrDesktop = Platform.OS === 'web' || width >= 640;
 
   return (
     <RNModal
-      animationType="slide"
+      animationType={isWebOrDesktop ? 'fade' : 'slide'}
       transparent
       visible={visible}
       onRequestClose={onClose}
     >
       <TouchableWithoutFeedback onPress={onClose}>
-        <View style={styles.overlay}>
+        <View style={[styles.overlay, isWebOrDesktop && styles.overlayCentered]}>
           <TouchableWithoutFeedback>
             <View
               style={[
                 styles.content,
+                isWebOrDesktop ? styles.contentCentered : styles.contentBottomSheet,
                 {
                   backgroundColor: colors.surface,
                   borderColor: colors.surfaceBorder,
+                  maxWidth: isWebOrDesktop ? maxWidth : '100%',
                 },
+                contentStyle,
               ]}
             >
               <View style={styles.header}>
@@ -56,11 +69,18 @@ export const Modal: React.FC<ModalProps> = ({
                 <TouchableOpacity
                   hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                   onPress={onClose}
+                  style={[styles.closeButton, { backgroundColor: colors.surfaceHover }]}
                 >
-                  <X color={colors.textSecondary} size={20} />
+                  <X color={colors.textSecondary} size={18} />
                 </TouchableOpacity>
               </View>
-              <ScrollView style={styles.body}>{children}</ScrollView>
+
+              <ScrollView
+                showsVerticalScrollIndicator={false}
+                style={styles.body}
+              >
+                {children}
+              </ScrollView>
             </View>
           </TouchableWithoutFeedback>
         </View>
@@ -72,28 +92,56 @@ export const Modal: React.FC<ModalProps> = ({
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(15, 23, 42, 0.75)',
+  },
+  overlayCentered: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: spacing.lg,
   },
   content: {
+    width: '100%',
+    borderWidth: 1,
+    padding: spacing.xl,
+    ...(Platform.OS === 'web'
+      ? {
+          boxShadow:
+            '0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.3)',
+        }
+      : {
+          elevation: 10,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 10 },
+          shadowOpacity: 0.3,
+          shadowRadius: 15,
+        }),
+  },
+  contentCentered: {
+    borderRadius: radius.lg,
+    maxHeight: '90%',
+  },
+  contentBottomSheet: {
+    marginTop: 'auto',
     borderTopLeftRadius: radius.lg,
     borderTopRightRadius: radius.lg,
-    borderWidth: 1,
     borderBottomWidth: 0,
     maxHeight: '85%',
-    padding: spacing.lg,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: spacing.md,
+    marginBottom: spacing.lg,
   },
   title: {
     fontSize: 18,
     fontWeight: '700',
   },
+  closeButton: {
+    padding: 6,
+    borderRadius: radius.full,
+  },
   body: {
-    maxHeight: 500,
+    maxHeight: 520,
   },
 });
