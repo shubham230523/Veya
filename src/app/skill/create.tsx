@@ -8,7 +8,17 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { router } from 'expo-router';
-import { ArrowLeft, Sparkles, ShieldCheck, AlertTriangle } from 'lucide-react-native';
+import * as Clipboard from 'expo-clipboard';
+import {
+  ArrowLeft,
+  Sparkles,
+  ShieldCheck,
+  AlertTriangle,
+  Copy,
+  Check,
+  Eye,
+  SlidersHorizontal,
+} from 'lucide-react-native';
 import { useTheme, spacing, radius, palette } from '../../core/theme';
 import { Button } from '../../components/ui/Button';
 import { Card } from '../../components/ui/Card';
@@ -20,6 +30,7 @@ import { useToast } from '../../components/ui/Toast';
 import { skillService } from '../../features/skills/skillService';
 import { scanSkillContent } from '../../core/security/securityScanner';
 import { OpenRouterClient } from '../../core/ai/openrouterClient';
+import { formatFullSkillPrompt } from '../../features/skills/skillFormatter';
 import { SkillCategory } from '../../types/skill';
 
 const CATEGORIES: SkillCategory[] = [
@@ -50,6 +61,8 @@ export default function CreateSkillScreen() {
 
   const [aiPrompt, setAiPrompt] = useState('');
   const [drafting, setDrafting] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [showAdvanced, setShowAdvanced] = useState(false);
 
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -66,6 +79,22 @@ export default function CreateSkillScreen() {
     instructions,
     rules: [rules],
   });
+
+  const livePromptPreview = formatFullSkillPrompt({
+    name: name || 'Untitled Skill',
+    objective,
+    instructions,
+    rules: rules.split('\n').filter((r) => r.trim().length > 0),
+    expected_output: expectedOutput,
+  });
+
+  const handleCopyPreview = async () => {
+    if (!livePromptPreview) return;
+    await Clipboard.setStringAsync(livePromptPreview);
+    setCopied(true);
+    showToast('Generated Skill Prompt copied to clipboard!', 'success');
+    setTimeout(() => setCopied(false), 3000);
+  };
 
   const handleAiDraft = async () => {
     if (!aiPrompt.trim()) return;
@@ -99,9 +128,9 @@ Return ONLY a JSON object matching this schema:
       if (draft.rules && Array.isArray(draft.rules)) setRules(draft.rules.join('\n'));
       if (draft.category && CATEGORIES.includes(draft.category)) setCategory(draft.category);
 
-      showToast('AI Skill draft generated successfully!', 'success');
+      showToast('AI Skill generated successfully!', 'success');
     } catch (err: any) {
-      showToast(err.message || 'AI Draft generation failed', 'error');
+      showToast(err.message || 'AI Skill generation failed', 'error');
     } finally {
       setDrafting(false);
     }
@@ -152,6 +181,8 @@ Return ONLY a JSON object matching this schema:
     router.replace(`/skill/${created.id}`);
   };
 
+  const hasDraftContent = name || objective || instructions;
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.bg }]}>
       <Container maxWidth={960}>
@@ -160,72 +191,198 @@ Return ONLY a JSON object matching this schema:
           <TouchableOpacity onPress={() => router.back()}>
             <ArrowLeft color={colors.textPrimary} size={22} />
           </TouchableOpacity>
-          <Text style={[styles.navTitle, { color: colors.textPrimary }]}>Create Custom Skill</Text>
+          <Text style={[styles.navTitle, { color: colors.textPrimary }]}>Create Skill</Text>
           <View style={{ width: 22 }} />
         </View>
 
         <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-          {/* AI DRAFT ASSISTANT */}
-          <Card style={styles.aiCard}>
+          {/* AI DRAFT ASSISTANT - HIGHLIGHTED FOR ALL USERS */}
+          <Card
+            style={[
+              styles.aiCard,
+              { backgroundColor: 'rgba(99,102,241,0.1)', borderColor: 'rgba(99,102,241,0.3)' },
+            ]}
+          >
             <View style={styles.aiHeader}>
-              <Sparkles color={palette.primaryLight} size={18} />
-              <Text style={[styles.aiTitle, { color: colors.textPrimary }]}>AI Skill Assistant</Text>
+              <Sparkles color={palette.primaryLight} size={20} />
+              <Text style={[styles.aiTitle, { color: colors.textPrimary }]}>
+                1-Click AI Skill Generator
+              </Text>
             </View>
+
             <Text style={[styles.aiSubtitle, { color: colors.textSecondary }]}>
-              Describe what you want this Skill to do, and OpenRouter AI will generate a structured draft.
+              Simply type what you want your AI Skill to do in plain English. Veya AI will write the
+              objective, instructions, rules, and output structure for you!
             </Text>
+
             <Input
               onChangeText={setAiPrompt}
-              placeholder="e.g. 'Review React Native code for performance and memory leaks'"
+              placeholder="e.g. 'Review React Native code for performance bottlenecks and memory leaks'"
               value={aiPrompt}
             />
+
             <Button
+              icon={<Sparkles color="#FFFFFF" size={16} />}
               loading={drafting}
               onPress={handleAiDraft}
-              size="sm"
-              title="Generate AI Draft"
-              variant="secondary"
+              title={drafting ? 'Generating Skill...' : '✨ Generate AI Skill'}
             />
           </Card>
 
-          {/* SECURITY SCANNER RESULTS */}
-          <Card style={styles.scanCard}>
-            <View style={styles.scanHeader}>
-              {scanResult.status === 'clean' ? (
-                <ShieldCheck color={colors.success} size={18} />
-              ) : (
-                <AlertTriangle color={colors.danger} size={18} />
-              )}
-              <Text style={[styles.scanTitle, { color: colors.textPrimary }]}>Security Scan Status</Text>
-            </View>
-            <Badge
-              label={scanResult.summary}
-              variant={scanResult.status === 'clean' ? 'success' : 'danger'}
-            />
-          </Card>
+          {/* LIVE GENERATED SKILL PROMPT PREVIEW */}
+          {hasDraftContent && (
+            <Card style={styles.previewCard}>
+              <View style={styles.previewHeader}>
+                <View style={styles.previewHeaderTitleRow}>
+                  <Eye color={palette.primaryLight} size={18} />
+                  <Text style={[styles.previewTitle, { color: colors.textPrimary }]}>
+                    Generated Skill Content
+                  </Text>
+                </View>
 
-          {/* FORM INPUTS */}
-          <Input label="Skill Name" onChangeText={setName} placeholder="e.g. React Native Performance Audit" value={name} />
-          <Input label="Short Description" onChangeText={setDescription} placeholder="Brief summary of what this skill achieves" value={description} />
-          <Input label="Objective" multiline onChangeText={setObjective} placeholder="Clear objective statement" value={objective} />
-          <Input label="Instructions" multiline onChangeText={setInstructions} placeholder="Detailed step-by-step instructions for the AI provider" value={instructions} />
-          <Input label="Rules & Constraints (One per line)" multiline onChangeText={setRules} placeholder="e.g. Do not use legacy Class components" value={rules} />
-          <Input label="Expected Output" onChangeText={setExpectedOutput} placeholder="e.g. Clean refactored code block with explanation" value={expectedOutput} />
+                <TouchableOpacity
+                  onPress={handleCopyPreview}
+                  style={[
+                    styles.copyPreviewBtn,
+                    {
+                      backgroundColor: copied
+                        ? colors.successBg
+                        : 'rgba(99,102,241,0.2)',
+                      borderColor: copied ? colors.success : palette.primary,
+                    },
+                  ]}
+                >
+                  {copied ? (
+                    <Check color={colors.success} size={14} />
+                  ) : (
+                    <Copy color={palette.primaryLight} size={14} />
+                  )}
+                  <Text
+                    style={[
+                      styles.copyPreviewBtnText,
+                      { color: copied ? colors.success : palette.primaryLight },
+                    ]}
+                  >
+                    {copied ? 'Copied' : 'Copy Prompt'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
 
-          {/* Category Picker */}
-          <Text style={[styles.label, { color: colors.textSecondary }]}>Category</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.catScroll}>
-            {CATEGORIES.map((cat) => (
-              <Chip
-                key={cat}
-                label={cat}
-                onPress={() => setCategory(cat)}
-                selected={category === cat}
+              <Text style={[styles.previewSubtitle, { color: colors.textMuted }]}>
+                This is the complete Skill Prompt generated by Veya. You can copy it directly or publish it below.
+              </Text>
+
+              <View
+                style={[
+                  styles.previewBox,
+                  { backgroundColor: colors.surfaceHover, borderColor: colors.surfaceBorder },
+                ]}
+              >
+                <Text selectable style={[styles.previewText, { color: colors.textPrimary }]}>
+                  {livePromptPreview}
+                </Text>
+              </View>
+            </Card>
+          )}
+
+          {/* SECURITY SCANNER STATUS */}
+          {hasDraftContent && (
+            <Card style={styles.scanCard}>
+              <View style={styles.scanHeader}>
+                {scanResult.status === 'clean' ? (
+                  <ShieldCheck color={colors.success} size={18} />
+                ) : (
+                  <AlertTriangle color={colors.danger} size={18} />
+                )}
+                <Text style={[styles.scanTitle, { color: colors.textPrimary }]}>
+                  Security Scan Status
+                </Text>
+              </View>
+              <Badge
+                label={scanResult.summary}
+                variant={scanResult.status === 'clean' ? 'success' : 'danger'}
               />
-            ))}
-          </ScrollView>
+            </Card>
+          )}
 
-          <Button onPress={handleSaveSkill} style={{ marginTop: spacing.lg }} title="Publish Custom Skill" />
+          {/* EDITABLE FIELDS (EXPANDABLE FOR ADVANCED USERS) */}
+          <TouchableOpacity
+            onPress={() => setShowAdvanced(!showAdvanced)}
+            style={[styles.advancedToggle, { borderColor: colors.surfaceBorder }]}
+          >
+            <SlidersHorizontal color={palette.primaryLight} size={16} />
+            <Text style={[styles.advancedToggleText, { color: colors.textPrimary }]}>
+              {showAdvanced ? 'Hide Edit Fields' : 'Customize / Edit Skill Fields'}
+            </Text>
+          </TouchableOpacity>
+
+          {(showAdvanced || !hasDraftContent) && (
+            <View style={styles.formBox}>
+              <Input
+                label="Skill Name"
+                onChangeText={setName}
+                placeholder="e.g. React Native Performance Audit"
+                value={name}
+              />
+              <Input
+                label="Short Description"
+                onChangeText={setDescription}
+                placeholder="Brief summary of what this skill achieves"
+                value={description}
+              />
+              <Input
+                label="Objective"
+                multiline
+                onChangeText={setObjective}
+                placeholder="Clear objective statement"
+                value={objective}
+              />
+              <Input
+                label="Instructions"
+                multiline
+                onChangeText={setInstructions}
+                placeholder="Detailed step-by-step instructions for the AI provider"
+                value={instructions}
+              />
+              <Input
+                label="Rules & Constraints (One per line)"
+                multiline
+                onChangeText={setRules}
+                placeholder="e.g. Focus on React Native best practices"
+                value={rules}
+              />
+              <Input
+                label="Expected Output"
+                onChangeText={setExpectedOutput}
+                placeholder="e.g. Structured report with identified issues"
+                value={expectedOutput}
+              />
+
+              {/* Category Picker */}
+              <Text style={[styles.label, { color: colors.textSecondary }]}>Category</Text>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                style={styles.catScroll}
+              >
+                {CATEGORIES.map((cat) => (
+                  <Chip
+                    key={cat}
+                    label={cat}
+                    onPress={() => setCategory(cat)}
+                    selected={category === cat}
+                  />
+                ))}
+              </ScrollView>
+            </View>
+          )}
+
+          {/* PUBLISH BUTTON */}
+          <Button
+            onPress={handleSaveSkill}
+            style={{ marginTop: spacing.md }}
+            title="Publish & Save Skill"
+          />
         </ScrollView>
       </Container>
     </SafeAreaView>
@@ -262,12 +419,58 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xs,
   },
   aiTitle: {
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: '700',
   },
   aiSubtitle: {
     fontSize: 12,
+    lineHeight: 18,
     marginBottom: spacing.sm,
+  },
+  previewCard: {
+    marginBottom: spacing.md,
+  },
+  previewHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  previewHeaderTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+  },
+  previewTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+  },
+  copyPreviewBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 4,
+    borderRadius: radius.sm,
+    borderWidth: 1,
+  },
+  copyPreviewBtnText: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  previewSubtitle: {
+    fontSize: 12,
+    marginBottom: spacing.sm,
+  },
+  previewBox: {
+    padding: spacing.md,
+    borderRadius: radius.md,
+    borderWidth: 1,
+  },
+  previewText: {
+    fontFamily: 'monospace',
+    fontSize: 12,
+    lineHeight: 18,
   },
   scanCard: {
     marginBottom: spacing.md,
@@ -281,6 +484,24 @@ const styles = StyleSheet.create({
   scanTitle: {
     fontSize: 14,
     fontWeight: '700',
+  },
+  advancedToggle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.xs,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    marginBottom: spacing.md,
+  },
+  advancedToggleText: {
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  formBox: {
+    marginBottom: spacing.md,
   },
   label: {
     fontSize: 12,
