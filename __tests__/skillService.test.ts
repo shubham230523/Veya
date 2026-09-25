@@ -72,6 +72,26 @@ describe('SkillService Engine', () => {
     expect(fetched?.name).toEqual('Custom Test Skill');
   });
 
+  it('searches AI skills across the web and returns curated skill objects', async () => {
+    jest.spyOn(OpenRouterClient, 'generateStructuredJSON').mockResolvedValueOnce([
+      {
+        name: 'React Native Memory Auditor',
+        description: 'Analyzes heap memory & component unmount leaks',
+        objective: 'Identify memory leaks in React Native',
+        instructions: '1. Check useEffect cleanup.\n2. Inspect listeners.',
+        rules: ['Strict React Native rules'],
+        expectedOutput: 'Markdown audit report',
+        category: 'Coding',
+        tags: ['React Native', 'Memory'],
+      },
+    ]);
+
+    const results = await skillService.searchWebSkills('React Native Memory');
+    expect(results.length).toEqual(1);
+    expect(results[0].name).toEqual('React Native Memory Auditor');
+    expect(results[0].source?.type).toEqual('imported');
+  });
+
   it('toggles skill save status and tracks saved skills', async () => {
     const all = await skillService.getSkills();
     const targetId = all[0].id;

@@ -4,6 +4,7 @@ import { StatusBar } from 'expo-status-bar';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider, useTheme } from '../core/theme';
 import { ToastProvider } from '../components/ui/Toast';
+import '../global.css';
 
 const queryClient = new QueryClient();
 
