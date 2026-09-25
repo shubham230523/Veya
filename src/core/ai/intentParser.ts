@@ -39,16 +39,37 @@ export const parseIntentFromPrompt = (
   const matchedSkillScores: { skill: CanonicalSkill; score: number }[] = availableSkills.map(
     (skill) => {
       let score = 0;
+      const nameLower = skill.name.toLowerCase();
+      const descLower = skill.description.toLowerCase();
+      const objLower = skill.objective.toLowerCase();
 
-      if (promptLower.includes(skill.name.toLowerCase())) score += 5;
+      if (promptLower.includes(nameLower)) score += 5;
       if (promptLower.includes(skill.category.toLowerCase())) score += 3;
 
       skill.tags.forEach((tag) => {
-        if (promptLower.includes(tag.toLowerCase())) score += 2;
+        const tagLower = tag.toLowerCase();
+        if (promptLower.includes(tagLower)) score += 3;
       });
 
-      if (promptLower.includes('app') && ['PRD', 'UX', 'React Native'].some((k) => skill.tags.includes(k))) score += 2;
-      if (promptLower.includes('ai') && ['AI', 'OpenRouter', 'Whisper'].some((k) => skill.tags.includes(k))) score += 2;
+      // Domain & Feature Intent Matchers
+      if (promptLower.includes('audio') || promptLower.includes('transcrib') || promptLower.includes('voice') || promptLower.includes('speech')) {
+        if (skill.tags.some((t) => ['Audio', 'Whisper', 'Speech', 'Transcription'].includes(t))) score += 5;
+        if (nameLower.includes('whisper') || nameLower.includes('audio') || descLower.includes('transcrib')) score += 5;
+      }
+
+      if (promptLower.includes('note') || promptLower.includes('summar') || promptLower.includes('organiz')) {
+        if (skill.tags.some((t) => ['Notes', 'Summarization', 'PRD', 'Productivity'].includes(t))) score += 4;
+        if (nameLower.includes('note') || nameLower.includes('prd') || descLower.includes('note')) score += 4;
+      }
+
+      if (promptLower.includes('app') || promptLower.includes('mobile')) {
+        if (skill.tags.some((t) => ['React Native', 'Expo', 'Mobile', 'Architecture'].includes(t))) score += 3;
+        if (nameLower.includes('react native') || nameLower.includes('architecture')) score += 3;
+      }
+
+      if (promptLower.includes('ai') || promptLower.includes('gpt') || promptLower.includes('llm')) {
+        if (skill.category === 'AI' || skill.tags.includes('AI')) score += 3;
+      }
 
       return { skill, score };
     }
