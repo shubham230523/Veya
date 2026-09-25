@@ -109,7 +109,7 @@ describe('ProviderAdapters Engine', () => {
     const result = ProviderAdapterEngine.adaptWorkflow(mockWorkflow, 'gpt');
 
     expect(result.providerId).toEqual('gpt');
-    expect(result.formattedPrompt).toContain('# SYSTEM ROLE: VEYA WORKFLOW ENGINE');
+    expect(result.formattedPrompt).toContain('# SYSTEM ROLE: VEYA FULL-STACK AI ENGINE');
     expect(result.formattedPrompt).toContain('## PRIMARY GOAL');
     expect(result.formattedPrompt).toContain(mockWorkflow.goal);
     expect(result.formattedPrompt).toContain('Custom Context:** Focus on performance');

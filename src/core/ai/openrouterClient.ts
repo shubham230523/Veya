@@ -18,6 +18,20 @@ export class OpenRouterClient {
     return key.trim();
   }
 
+  private static getModelIdentifier(provider: ProviderType = DEFAULT_PROVIDER_ID): string {
+    const envModel =
+      process.env.EXPO_PUBLIC_AI_MODEL ||
+      process.env.EXPO_PUBLIC_DEFAULT_MODEL ||
+      process.env.EXPO_PUBLIC_OPENROUTER_MODEL;
+
+    if (envModel && envModel.trim()) {
+      return envModel.trim();
+    }
+
+    const providerInfo = PROVIDERS[provider] || PROVIDERS['openrouter'];
+    return providerInfo.modelIdentifier;
+  }
+
   static async generatePromptResponseStream(
     prompt: string,
     onChunk: (chunk: string, accumulated: string) => void,
@@ -26,8 +40,7 @@ export class OpenRouterClient {
   ): Promise<OpenRouterResponse> {
     const startTime = Date.now();
     const apiKey = this.getApiKey();
-    const providerInfo = PROVIDERS[provider] || PROVIDERS['openrouter'];
-    const model = providerInfo.modelIdentifier;
+    const model = this.getModelIdentifier(provider);
 
     console.log(`[Veya AI Engine Stream] ⚡ Requesting stream from model: ${model}`);
 
@@ -149,8 +162,7 @@ export class OpenRouterClient {
   ): Promise<OpenRouterResponse> {
     const startTime = Date.now();
     const apiKey = this.getApiKey();
-    const providerInfo = PROVIDERS[provider] || PROVIDERS['openrouter'];
-    const model = providerInfo.modelIdentifier;
+    const model = this.getModelIdentifier(provider);
 
     console.log(`[Veya AI Engine] [Step 1/3] Preparing prompt response request for model: ${model}`);
 
@@ -218,8 +230,7 @@ export class OpenRouterClient {
   ): Promise<T> {
     const startTime = Date.now();
     const apiKey = this.getApiKey();
-    const providerInfo = PROVIDERS[provider] || PROVIDERS['openrouter'];
-    const model = providerInfo.modelIdentifier;
+    const model = this.getModelIdentifier(provider);
 
     console.log(`[Veya AI Engine] [Step 1/4] Preparing structured JSON request using model: ${model}`);
 

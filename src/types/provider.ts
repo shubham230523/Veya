@@ -15,7 +15,10 @@ export const DEFAULT_PROVIDER_ID: ProviderType =
   (process.env.EXPO_PUBLIC_DEFAULT_PROVIDER as ProviderType) ||
   'openrouter';
 
-const configuredModel = process.env.EXPO_PUBLIC_AI_MODEL || process.env.EXPO_PUBLIC_DEFAULT_MODEL;
+const configuredModel =
+  process.env.EXPO_PUBLIC_AI_MODEL ||
+  process.env.EXPO_PUBLIC_DEFAULT_MODEL ||
+  process.env.EXPO_PUBLIC_OPENROUTER_MODEL;
 
 export const PROVIDERS: Record<ProviderType, ProviderInfo> = {
   openrouter: {
@@ -31,7 +34,7 @@ export const PROVIDERS: Record<ProviderType, ProviderInfo> = {
     id: 'gemini',
     name: 'Google Gemini',
     vendor: 'Google AI',
-    modelIdentifier: process.env.EXPO_PUBLIC_GEMINI_MODEL || 'gemini-2.5-flash',
+    modelIdentifier: configuredModel || process.env.EXPO_PUBLIC_GEMINI_MODEL || 'gemini-2.5-flash',
     description: 'Direct Google GenAI SDK for long context, system instructions, and fast execution.',
     iconName: 'Zap',
     accentColor: '#8E75FF',
@@ -40,7 +43,7 @@ export const PROVIDERS: Record<ProviderType, ProviderInfo> = {
     id: 'ollama',
     name: 'Ollama Local',
     vendor: 'Localhost',
-    modelIdentifier: process.env.EXPO_PUBLIC_OLLAMA_MODEL || 'llama3',
+    modelIdentifier: configuredModel || process.env.EXPO_PUBLIC_OLLAMA_MODEL || 'llama3',
     description: 'Local private offline model execution on http://localhost:11434.',
     iconName: 'Cpu',
     accentColor: '#10B981',
@@ -49,7 +52,7 @@ export const PROVIDERS: Record<ProviderType, ProviderInfo> = {
     id: 'claude',
     name: 'Claude 3.5 Sonnet',
     vendor: 'Anthropic',
-    modelIdentifier: 'anthropic/claude-3.5-sonnet',
+    modelIdentifier: configuredModel || 'anthropic/claude-3.5-sonnet',
     description: 'Optimal for complex coding, architectural reasoning, and structured XML prompts.',
     iconName: 'Sparkles',
     accentColor: '#D97706',
@@ -58,7 +61,7 @@ export const PROVIDERS: Record<ProviderType, ProviderInfo> = {
     id: 'gpt',
     name: 'GPT-4o',
     vendor: 'OpenAI',
-    modelIdentifier: 'openai/gpt-4o',
+    modelIdentifier: configuredModel || 'openai/gpt-4o',
     description: 'Fast, highly reliable instruction-following with crisp Markdown output formatting.',
     iconName: 'Cpu',
     accentColor: '#10A37F',

@@ -65,7 +65,7 @@ export class ProviderAdapterEngine {
 
   private static formatClaudeXml(workflow: Workflow, steps: any[]): string {
     return `<system_instructions>
-You are an expert AI assistant tasked with executing the following structured Veya Workflow.
+You are an expert Senior Full-Stack AI Engineer tasked with building the user's target application from 0 to 100%.
 
 <workflow_goal>
 ${workflow.goal}
@@ -91,7 +91,10 @@ ${(step.skill?.rules || []).map((r: string) => `    - ${r}`).join('\n')}
 </execution_sequence>
 
 <output_directive>
-Execute each step in sequential order. Provide actionable code, documentation, and architecture diagrams for the user's target project.
+CRITICAL MANDATE FOR 0-TO-100% CODE CREATION:
+1. Execute each step sequentially.
+2. Produce complete, fully functional 0-to-100% production source code files (TypeScript components, Expo Router screens, state stores, service hooks, and Supabase SQL migrations).
+3. Do NOT use placeholders, stubbed comments (e.g. "// implement here"), or truncated code snippets. Write complete, ready-to-run source code.
 </output_directive>
 </system_instructions>`;
   }
@@ -100,6 +103,10 @@ Execute each step in sequential order. Provide actionable code, documentation, a
     return `SYSTEM INSTRUCTION / CONTEXT BLOCK:
 
 GOAL: ${workflow.goal}
+
+ROLE & DIRECTIVE:
+You are an expert Senior Full-Stack AI Engineer tasked with taking this project from 0 to 100% completion.
+Produce complete, runnable production source code files (TypeScript components, hooks, API services, and Supabase SQL migrations) for each step in the pipeline below. Do not use placeholders or truncated code.
 
 WORKFLOW EXECUTION PIPELINE:
 ${steps
@@ -121,14 +128,18 @@ ${step.skill?.expected_output || ''}
   )
   .join('\n')}
 
-Execute sequentially according to Gemini multimodal and structured reasoning guidelines.`;
+Execute sequentially according to Gemini multimodal and structured reasoning guidelines. Output complete production source code files from 0 to 100%.`;
   }
 
   private static formatGptMarkdownRole(workflow: Workflow, steps: any[]): string {
-    return `# SYSTEM ROLE: VEYA WORKFLOW ENGINE
+    return `# SYSTEM ROLE: VEYA FULL-STACK AI ENGINE
 
 ## PRIMARY GOAL
 ${workflow.goal}
+
+## MANDATE FOR 0-TO-100% APP CREATION
+You are acting as the primary lead AI engineer building this application from scratch (0 to 100%).
+For each step below, output complete, compilable, production-ready source code files (Expo Router screens, components, services, and database migrations). Do not truncate code or use "// write code here" placeholders.
 
 ## WORKFLOW STEPS
 
