@@ -76,7 +76,7 @@ export const SkillCard: React.FC<SkillCardProps> = ({ skill, onSaveToggle }) => 
 
 const styles = StyleSheet.create({
   card: {
-    marginBottom: spacing.md,
+    marginBottom: spacing.lg,
   },
   header: {
     flexDirection: 'row',
@@ -100,7 +100,7 @@ const styles = StyleSheet.create({
   },
   description: {
     fontSize: 13,
-    lineHeight: 18,
+    lineHeight: 20,
     marginBottom: spacing.md,
   },
   footer: {

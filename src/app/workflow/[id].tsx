@@ -291,11 +291,11 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   content: {
-    padding: spacing.lg,
-    paddingBottom: 40,
+    padding: spacing.xl,
+    paddingBottom: 60,
   },
   headerCard: {
-    marginBottom: spacing.lg,
+    marginBottom: spacing.xl,
   },
   goalLabel: {
     fontSize: 11,
@@ -315,13 +315,13 @@ const styles = StyleSheet.create({
   },
   providerRow: {
     flexDirection: 'row',
-    gap: spacing.sm,
-    marginBottom: spacing.lg,
+    gap: spacing.md,
+    marginBottom: spacing.xl,
   },
   providerBox: {
     flex: 1,
     alignItems: 'center',
-    paddingVertical: spacing.md,
+    paddingVertical: spacing.lg,
     borderRadius: radius.md,
     borderWidth: 1,
   },
@@ -344,7 +344,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   stepCard: {
-    marginBottom: spacing.md,
+    marginBottom: spacing.lg,
   },
   stepHeaderRow: {
     flexDirection: 'row',
@@ -370,7 +370,7 @@ const styles = StyleSheet.create({
   },
   stepObjective: {
     fontSize: 12,
-    lineHeight: 16,
+    lineHeight: 18,
     marginBottom: spacing.sm,
   },
   customInstructionBox: {
@@ -405,7 +405,7 @@ const styles = StyleSheet.create({
     padding: 4,
   },
   generateButton: {
-    marginTop: spacing.md,
+    marginTop: spacing.lg,
   },
   modalSkillName: {
     fontSize: 14,

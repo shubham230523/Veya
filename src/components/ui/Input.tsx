@@ -29,6 +29,7 @@ export const Input: React.FC<InputProps> = ({
   containerStyle,
   inputStyle,
   placeholderTextColor,
+  multiline,
   ...props
 }) => {
   const { colors } = useTheme();
@@ -42,15 +43,20 @@ export const Input: React.FC<InputProps> = ({
           {
             backgroundColor: colors.surface,
             borderColor: error ? colors.danger : colors.surfaceBorder,
+            minHeight: multiline ? 96 : 48,
+            alignItems: multiline ? 'flex-start' : 'center',
+            paddingVertical: multiline ? spacing.xs : 0,
           },
         ]}
       >
         {leftIcon && <View style={styles.iconLeft}>{leftIcon}</View>}
         <TextInput
+          multiline={multiline}
           placeholderTextColor={placeholderTextColor || colors.textMuted}
           style={[
             styles.input,
             { color: colors.textPrimary },
+            multiline && { textAlignVertical: 'top' },
             inputStyle,
           ]}
           {...props}
@@ -65,7 +71,7 @@ export const Input: React.FC<InputProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: spacing.md,
+    marginBottom: spacing.lg,
   },
   label: {
     fontSize: 12,
@@ -76,22 +82,22 @@ const styles = StyleSheet.create({
   },
   inputWrapper: {
     flexDirection: 'row',
-    alignItems: 'center',
     borderRadius: radius.md,
     borderWidth: 1,
     paddingHorizontal: spacing.md,
-    height: 44,
   },
   input: {
     flex: 1,
     fontSize: 14,
-    height: '100%',
+    paddingVertical: spacing.xs,
   },
   iconLeft: {
     marginRight: spacing.sm,
+    marginTop: spacing.xs,
   },
   iconRight: {
     marginLeft: spacing.sm,
+    marginTop: spacing.xs,
   },
   error: {
     fontSize: 12,

@@ -7,7 +7,6 @@ import {
   SafeAreaView,
   FlatList,
   useWindowDimensions,
-  TouchableOpacity,
 } from 'react-native';
 import { Search, Sparkles, Globe, Download } from 'lucide-react-native';
 import { useTheme, spacing, radius, palette } from '../../core/theme';
@@ -87,7 +86,7 @@ export default function DiscoverScreen() {
       <Container maxWidth={960}>
         <View style={styles.header}>
           <View style={styles.titleRow}>
-            <View>
+            <View style={{ flex: 1 }}>
               <Text style={[styles.title, { color: colors.textPrimary }]}>Discover Skills</Text>
               <Text style={[styles.subtitle, { color: colors.textMuted }]}>
                 Search Supabase skills or import prompts from GitHub & Web.
@@ -199,7 +198,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    padding: spacing.lg,
+    padding: spacing.xl,
     paddingBottom: spacing.sm,
   },
   titleRow: {
@@ -218,7 +217,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   searchContainer: {
-    marginBottom: spacing.sm,
+    marginBottom: spacing.md,
   },
   chipScroll: {
     flexDirection: 'row',
@@ -228,7 +227,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: spacing.lg,
+    paddingHorizontal: spacing.xl,
     paddingVertical: spacing.xs,
     marginBottom: spacing.xs,
   },
@@ -250,9 +249,9 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   listContent: {
-    padding: spacing.lg,
+    padding: spacing.xl,
     paddingTop: 0,
-    paddingBottom: 40,
+    paddingBottom: 60,
   },
   gridCol: {
     flex: 1,

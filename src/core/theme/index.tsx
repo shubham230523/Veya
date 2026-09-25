@@ -4,18 +4,18 @@ import { palette, getThemeColors, ThemeMode } from './colors';
 export { palette, getThemeColors, ThemeMode };
 
 export const spacing = {
-  xs: 4,
-  sm: 8,
-  md: 12,
-  lg: 16,
-  xl: 24,
-  xxl: 32,
+  xs: 6,
+  sm: 12,
+  md: 18,
+  lg: 24,
+  xl: 32,
+  xxl: 48,
 };
 
 export const radius = {
-  sm: 6,
-  md: 10,
-  lg: 16,
+  sm: 8,
+  md: 12,
+  lg: 18,
   full: 9999,
 };
 

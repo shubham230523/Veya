@@ -355,7 +355,7 @@ export default function SkillDetailScreen() {
                         <Text style={[styles.stepTitle, { color: colors.textPrimary }]}>
                           {step.title}
                         </Text>
-                        {step.description && (
+                        {Boolean(step.description) && (
                           <Text style={[styles.stepDesc, { color: colors.textSecondary }]}>
                             {step.description}
                           </Text>
@@ -542,11 +542,11 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   content: {
-    padding: spacing.lg,
-    paddingBottom: 40,
+    padding: spacing.xl,
+    paddingBottom: 60,
   },
   headerBox: {
-    marginBottom: spacing.md,
+    marginBottom: spacing.xl,
   },
   badgeRow: {
     flexDirection: 'row',
@@ -561,31 +561,31 @@ const styles = StyleSheet.create({
   },
   description: {
     fontSize: 14,
-    lineHeight: 20,
-    marginBottom: spacing.md,
+    lineHeight: 22,
+    marginBottom: spacing.lg,
   },
   appGeneratedBanner: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    gap: spacing.sm,
-    padding: spacing.md,
+    gap: spacing.md,
+    padding: spacing.lg,
     borderRadius: radius.md,
     borderWidth: 1,
-    marginBottom: spacing.md,
+    marginBottom: spacing.lg,
   },
   bannerTitle: {
     fontSize: 14,
     fontWeight: '700',
-    marginBottom: 2,
+    marginBottom: 4,
   },
   bannerText: {
     fontSize: 12,
-    lineHeight: 17,
+    lineHeight: 18,
   },
   actionRow: {
     flexDirection: 'column',
-    gap: spacing.sm,
-    marginBottom: spacing.md,
+    gap: spacing.md,
+    marginBottom: spacing.xl,
   },
   primaryCopyBtn: {
     width: '100%',
@@ -593,7 +593,7 @@ const styles = StyleSheet.create({
   tabBar: {
     flexDirection: 'row',
     borderBottomWidth: 1,
-    marginBottom: spacing.md,
+    marginBottom: spacing.lg,
   },
   tabItem: {
     flexDirection: 'row',
@@ -612,13 +612,13 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   promptCard: {
-    marginBottom: spacing.md,
+    marginBottom: spacing.lg,
   },
   promptHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: spacing.sm,
+    marginBottom: spacing.md,
   },
   promptHeaderTitleRow: {
     flexDirection: 'row',
@@ -643,17 +643,17 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   promptBox: {
-    padding: spacing.md,
+    padding: spacing.lg,
     borderRadius: radius.md,
     borderWidth: 1,
   },
   promptText: {
     fontFamily: 'monospace',
     fontSize: 13,
-    lineHeight: 20,
+    lineHeight: 22,
   },
   sectionCard: {
-    marginBottom: spacing.md,
+    marginBottom: spacing.lg,
   },
   sectionTitle: {
     fontSize: 16,
@@ -668,21 +668,21 @@ const styles = StyleSheet.create({
   },
   bodyText: {
     fontSize: 13,
-    lineHeight: 18,
+    lineHeight: 20,
   },
   bulletText: {
     fontSize: 13,
     marginLeft: spacing.xs,
-    marginBottom: 2,
+    marginBottom: 4,
   },
   stepItem: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    marginBottom: spacing.md,
+    marginBottom: spacing.lg,
   },
   stepNumberBadge: {
-    width: 22,
-    height: 22,
+    width: 24,
+    height: 24,
     borderRadius: radius.full,
     alignItems: 'center',
     justifyContent: 'center',
@@ -718,7 +718,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'center',
-    paddingVertical: spacing.md,
+    paddingVertical: spacing.lg,
     borderRadius: radius.md,
     borderWidth: 1,
     marginTop: spacing.xs,
@@ -743,10 +743,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: spacing.sm,
+    marginBottom: spacing.md,
   },
   reviewBox: {
-    paddingVertical: spacing.xs,
+    paddingVertical: spacing.sm,
     borderBottomWidth: 1,
     marginBottom: spacing.xs,
   },
@@ -774,10 +774,10 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
   },
   ratingSelectBox: {
-    padding: spacing.md,
+    padding: spacing.lg,
     borderRadius: radius.md,
     borderWidth: 1,
-    marginBottom: spacing.xs,
+    marginBottom: spacing.md,
     alignItems: 'flex-start',
   },
 });

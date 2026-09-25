@@ -29,6 +29,7 @@ const styles = StyleSheet.create({
   wrapper: {
     flex: 1,
     width: '100%',
-    paddingTop: Platform.OS === 'web' ? 28 : 16,
+    paddingTop: Platform.OS === 'web' ? 32 : 20,
+    paddingBottom: 24,
   },
 });

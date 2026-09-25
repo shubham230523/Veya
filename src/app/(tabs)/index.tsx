@@ -156,7 +156,7 @@ export default function HomeScreen() {
           </View>
 
           {SEED_WORKFLOWS.length === 0 ? (
-            <Card style={{ marginBottom: spacing.lg, paddingVertical: spacing.lg, alignItems: 'center' }}>
+            <Card style={{ marginBottom: spacing.xl, paddingVertical: spacing.lg, alignItems: 'center' }}>
               <Text style={{ color: colors.textSecondary, fontSize: 13 }}>
                 No saved workflows yet. Type a goal above to compose your first AI workflow!
               </Text>
@@ -204,7 +204,7 @@ export default function HomeScreen() {
           </View>
 
           {popularSkills.length === 0 ? (
-            <Card style={{ marginBottom: spacing.lg, paddingVertical: spacing.lg, alignItems: 'center' }}>
+            <Card style={{ marginBottom: spacing.xl, paddingVertical: spacing.lg, alignItems: 'center' }}>
               <Text style={{ color: colors.textSecondary, fontSize: 13 }}>
                 No skills found in database. Click "Create Skill" or seed your Supabase database to see skills!
               </Text>
@@ -229,73 +229,73 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    padding: spacing.lg,
-    paddingBottom: 40,
+    padding: spacing.xl,
+    paddingBottom: 60,
   },
   header: {
-    marginBottom: spacing.lg,
+    marginBottom: spacing.xl,
   },
   brandRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.xs,
+    gap: spacing.sm,
   },
   logoIcon: {
-    width: 32,
-    height: 32,
+    width: 36,
+    height: 36,
     borderRadius: radius.md,
     alignItems: 'center',
     justifyContent: 'center',
   },
   brandName: {
-    fontSize: 22,
+    fontSize: 24,
     fontWeight: '900',
     letterSpacing: 2,
   },
   tagline: {
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '500',
-    marginTop: 2,
+    marginTop: 4,
   },
   heroCard: {
     padding: spacing.xl,
-    marginBottom: spacing.lg,
+    marginBottom: spacing.xl,
   },
   heroTitle: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: '800',
     marginBottom: spacing.xs,
   },
   heroSubtitle: {
-    fontSize: 13,
-    lineHeight: 18,
-    marginBottom: spacing.md,
+    fontSize: 14,
+    lineHeight: 22,
+    marginBottom: spacing.lg,
   },
   inputBox: {
     borderRadius: radius.md,
     borderWidth: 1,
     padding: spacing.md,
-    marginBottom: spacing.md,
-    minHeight: 80,
+    marginBottom: spacing.lg,
+    minHeight: 100,
   },
   textInput: {
     fontSize: 14,
-    lineHeight: 20,
+    lineHeight: 22,
     textAlignVertical: 'top',
   },
   actionButton: {
-    marginBottom: spacing.lg,
+    marginBottom: spacing.xl,
   },
   quickLabel: {
     fontSize: 11,
     fontWeight: '700',
     letterSpacing: 1,
-    marginBottom: spacing.xs,
+    marginBottom: spacing.sm,
   },
   suggestionsWrap: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: spacing.xs,
+    gap: spacing.sm,
   },
   chip: {
     paddingHorizontal: spacing.md,
@@ -310,20 +310,20 @@ const styles = StyleSheet.create({
   quickActionsRow: {
     flexDirection: 'row',
     gap: spacing.md,
-    marginBottom: spacing.lg,
+    marginBottom: spacing.xl,
   },
   quickBox: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: spacing.xs,
-    paddingVertical: spacing.md,
+    gap: spacing.sm,
+    paddingVertical: spacing.lg,
     borderRadius: radius.lg,
     borderWidth: 1,
   },
   quickBoxText: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '600',
   },
   sectionHeader: {
@@ -331,7 +331,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: spacing.md,
-    marginTop: spacing.sm,
+    marginTop: spacing.md,
   },
   sectionTitleRow: {
     flexDirection: 'row',
@@ -356,7 +356,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.xs,
   },
   workflowCard: {
-    marginBottom: spacing.md,
+    marginBottom: spacing.lg,
   },
   wfHeader: {
     flexDirection: 'row',

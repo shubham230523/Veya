@@ -181,7 +181,7 @@ Return ONLY a JSON object matching this schema:
     router.replace(`/skill/${created.id}`);
   };
 
-  const hasDraftContent = name || objective || instructions;
+  const hasDraftContent = Boolean(name.trim() || objective.trim() || instructions.trim());
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.bg }]}>
@@ -406,11 +406,12 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   content: {
-    padding: spacing.lg,
-    paddingBottom: 40,
+    padding: spacing.xl,
+    paddingBottom: 60,
   },
   aiCard: {
-    marginBottom: spacing.md,
+    padding: spacing.xl,
+    marginBottom: spacing.xl,
   },
   aiHeader: {
     flexDirection: 'row',
@@ -425,10 +426,10 @@ const styles = StyleSheet.create({
   aiSubtitle: {
     fontSize: 12,
     lineHeight: 18,
-    marginBottom: spacing.sm,
+    marginBottom: spacing.md,
   },
   previewCard: {
-    marginBottom: spacing.md,
+    marginBottom: spacing.xl,
   },
   previewHeader: {
     flexDirection: 'row',
@@ -460,20 +461,20 @@ const styles = StyleSheet.create({
   },
   previewSubtitle: {
     fontSize: 12,
-    marginBottom: spacing.sm,
+    marginBottom: spacing.md,
   },
   previewBox: {
-    padding: spacing.md,
+    padding: spacing.lg,
     borderRadius: radius.md,
     borderWidth: 1,
   },
   previewText: {
     fontFamily: 'monospace',
     fontSize: 12,
-    lineHeight: 18,
+    lineHeight: 20,
   },
   scanCard: {
-    marginBottom: spacing.md,
+    marginBottom: spacing.xl,
   },
   scanHeader: {
     flexDirection: 'row',
@@ -490,18 +491,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: spacing.xs,
-    paddingVertical: spacing.sm,
+    paddingVertical: spacing.md,
     paddingHorizontal: spacing.md,
     borderRadius: radius.md,
     borderWidth: 1,
-    marginBottom: spacing.md,
+    marginBottom: spacing.xl,
   },
   advancedToggleText: {
     fontSize: 13,
     fontWeight: '600',
   },
   formBox: {
-    marginBottom: spacing.md,
+    marginBottom: spacing.xl,
   },
   label: {
     fontSize: 12,
@@ -511,6 +512,6 @@ const styles = StyleSheet.create({
   },
   catScroll: {
     flexDirection: 'row',
-    marginBottom: spacing.md,
+    marginBottom: spacing.lg,
   },
 });

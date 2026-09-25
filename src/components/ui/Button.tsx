@@ -78,12 +78,12 @@ export const Button: React.FC<ButtonProps> = ({
   const getSizeStyles = () => {
     switch (size) {
       case 'sm':
-        return { paddingVertical: spacing.xs, paddingHorizontal: spacing.sm, fontSize: 12, height: 32 };
+        return { paddingVertical: spacing.xs, paddingHorizontal: spacing.sm, fontSize: 13, height: 36 };
       case 'lg':
-        return { paddingVertical: spacing.md, paddingHorizontal: spacing.xl, fontSize: 16, height: 48 };
+        return { paddingVertical: spacing.md, paddingHorizontal: spacing.xl, fontSize: 16, height: 52 };
       case 'md':
       default:
-        return { paddingVertical: spacing.sm, paddingHorizontal: spacing.lg, fontSize: 14, height: 40 };
+        return { paddingVertical: spacing.sm, paddingHorizontal: spacing.lg, fontSize: 14, height: 44 };
     }
   };
 

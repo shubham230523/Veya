@@ -31,7 +31,7 @@ export default function ProfileScreen() {
               <View>
                 <Text style={[styles.userName, { color: colors.textPrimary }]}>Developer Account</Text>
                 <Text style={[styles.userEmail, { color: colors.textMuted }]}>dev@veya.app</Text>
-                <Badge label="Master Build Plan MVP" style={{ marginTop: 4 }} variant="primary" />
+                <Badge label="Master Build Plan MVP" style={{ marginTop: 6 }} variant="primary" />
               </View>
             </View>
           </Card>
@@ -126,11 +126,11 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   content: {
-    padding: spacing.lg,
-    paddingBottom: 40,
+    padding: spacing.xl,
+    paddingBottom: 60,
   },
   userCard: {
-    marginBottom: spacing.lg,
+    marginBottom: spacing.xl,
   },
   avatarRow: {
     flexDirection: 'row',
@@ -154,11 +154,11 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 16,
     fontWeight: '700',
-    marginBottom: spacing.sm,
-    marginTop: spacing.xs,
+    marginBottom: spacing.md,
+    marginTop: spacing.md,
   },
   settingCard: {
-    marginBottom: spacing.sm,
+    marginBottom: spacing.md,
   },
   settingRow: {
     flexDirection: 'row',

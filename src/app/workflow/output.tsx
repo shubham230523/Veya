@@ -121,7 +121,7 @@ export default function GeneratedOutputScreen() {
           </Card>
 
           {/* AI MODEL EXECUTION PREVIEW */}
-          {aiResult && (
+          {Boolean(aiResult) && (
             <Card style={styles.aiResultCard}>
               <View style={styles.aiResultHeader}>
                 <Sparkles color={palette.primaryLight} size={16} />
@@ -165,11 +165,11 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   content: {
-    padding: spacing.lg,
-    paddingBottom: 40,
+    padding: spacing.xl,
+    paddingBottom: 60,
   },
   headerCard: {
-    marginBottom: spacing.lg,
+    marginBottom: spacing.xl,
   },
   metaRow: {
     flexDirection: 'row',
@@ -187,15 +187,15 @@ const styles = StyleSheet.create({
   },
   readySubtitle: {
     fontSize: 13,
-    lineHeight: 18,
-    marginBottom: spacing.md,
+    lineHeight: 20,
+    marginBottom: spacing.lg,
   },
   buttonRow: {
     flexDirection: 'row',
-    gap: spacing.sm,
+    gap: spacing.md,
   },
   aiResultCard: {
-    marginBottom: spacing.lg,
+    marginBottom: spacing.xl,
     borderColor: palette.primary,
   },
   aiResultHeader: {
@@ -219,7 +219,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   codeBox: {
-    padding: spacing.md,
+    padding: spacing.lg,
     borderRadius: radius.md,
     borderWidth: 1,
   },
@@ -227,6 +227,6 @@ const styles = StyleSheet.create({
     fontFamily: 'monospace',
     fontSize: 12,
     color: '#A5B4FC',
-    lineHeight: 18,
+    lineHeight: 20,
   },
 });

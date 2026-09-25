@@ -159,38 +159,38 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    padding: spacing.lg,
-    paddingBottom: spacing.sm,
+    padding: spacing.xl,
+    paddingBottom: spacing.md,
   },
   title: {
     fontSize: 24,
     fontWeight: '800',
-    marginBottom: spacing.xs,
+    marginBottom: 4,
   },
   subtitle: {
     fontSize: 13,
-    marginBottom: spacing.md,
+    marginBottom: spacing.lg,
   },
   segmentContainer: {
     flexDirection: 'row',
     borderRadius: radius.md,
     borderWidth: 1,
-    padding: 3,
+    padding: 4,
   },
   segment: {
     flex: 1,
     alignItems: 'center',
-    paddingVertical: spacing.xs + 2,
+    paddingVertical: spacing.sm,
     borderRadius: radius.sm,
   },
   segmentText: {
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '700',
   },
   listContent: {
-    padding: spacing.lg,
+    padding: spacing.xl,
     paddingTop: spacing.xs,
-    paddingBottom: 40,
+    paddingBottom: 60,
   },
   emptyBox: {
     alignItems: 'center',
@@ -208,7 +208,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   wfCard: {
-    marginBottom: spacing.md,
+    marginBottom: spacing.lg,
   },
   wfHeader: {
     flexDirection: 'row',
