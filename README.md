@@ -163,7 +163,7 @@ The action will automatically compile the Expo web build (`npx expo export -p we
 
 ## 🤝 Contributing
 
-Contributions are welcome! Feel free to open an issue or submit a pull request.
+Contributions are welcome!. Feel free to open an issue or submit a pull request.
 
 ---
 
