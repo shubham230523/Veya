@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -10,7 +10,7 @@ import {
   useWindowDimensions,
   ActivityIndicator,
 } from 'react-native';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { Sparkles, ArrowRight, Layers, Compass, PlusCircle } from 'lucide-react-native';
 import { useTheme, spacing, radius, palette } from '../../core/theme';
 import { Button } from '../../components/ui/Button';
@@ -18,10 +18,11 @@ import { Card } from '../../components/ui/Card';
 import { Container } from '../../components/ui/Container';
 import { SkillCard } from '../../components/SkillCard';
 import { skillService } from '../../features/skills/skillService';
+import { workflowService } from '../../features/workflows/workflowService';
 import { parseIntentWithAI } from '../../core/ai/intentParser';
 import { WorkflowComposer } from '../../core/ai/workflowComposer';
 import { CanonicalSkill } from '../../types/skill';
-import { SEED_WORKFLOWS } from '../../core/database/seed';
+import { Workflow } from '../../types/workflow';
 
 export default function HomeScreen() {
   const { colors } = useTheme();
@@ -32,14 +33,20 @@ export default function HomeScreen() {
   const [loading, setLoading] = useState(false);
   const [streamProgress, setStreamProgress] = useState<string>('');
   const [popularSkills, setPopularSkills] = useState<CanonicalSkill[]>([]);
+  const [activeWorkflows, setActiveWorkflows] = useState<Workflow[]>([]);
 
-  useEffect(() => {
-    loadPopularSkills();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      loadHomeScreenData();
+    }, [])
+  );
 
-  const loadPopularSkills = async () => {
+  const loadHomeScreenData = async () => {
     const skills = await skillService.getSkills();
     setPopularSkills(skills.slice(0, 4));
+
+    const wfs = await workflowService.getWorkflows();
+    setActiveWorkflows(wfs);
   };
 
   const handleComposeWorkflow = async (promptText?: string) => {
@@ -63,6 +70,9 @@ export default function HomeScreen() {
 
       // Compose the multi-step workflow pipeline from researched skills
       const workflow = WorkflowComposer.composeFromResearchedSkills(textToParse, researchedSkills);
+
+      // Save workflow for Library and Home persistence
+      await workflowService.saveWorkflow(workflow);
 
       router.push({
         pathname: '/workflow/[id]',
@@ -181,7 +191,7 @@ export default function HomeScreen() {
             </View>
           </View>
 
-          {SEED_WORKFLOWS.length === 0 ? (
+          {activeWorkflows.length === 0 ? (
             <Card style={{ marginBottom: spacing.xl, paddingVertical: spacing.lg, alignItems: 'center' }}>
               <Text style={{ color: colors.textSecondary, fontSize: 13 }}>
                 No saved workflows yet. Type a goal above to compose your first AI workflow!
@@ -189,7 +199,7 @@ export default function HomeScreen() {
             </Card>
           ) : (
             <View style={isDesktop ? styles.gridContainer : undefined}>
-              {SEED_WORKFLOWS.map((wf) => (
+              {activeWorkflows.map((wf) => (
                 <View key={wf.id} style={isDesktop ? styles.gridCol : undefined}>
                   <Card
                     onPress={() =>
@@ -239,7 +249,7 @@ export default function HomeScreen() {
             <View style={isDesktop ? styles.gridContainer : undefined}>
               {popularSkills.map((skill) => (
                 <View key={skill.id} style={isDesktop ? styles.gridCol : undefined}>
-                  <SkillCard onSaveToggle={loadPopularSkills} skill={skill} />
+                  <SkillCard onSaveToggle={loadHomeScreenData} skill={skill} />
                 </View>
               ))}
             </View>

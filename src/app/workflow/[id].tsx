@@ -28,7 +28,7 @@ import { Workflow, WorkflowStep } from '../../types/workflow';
 import { ProviderType } from '../../types/skill';
 import { PROVIDERS } from '../../types/provider';
 import { WorkflowComposer } from '../../core/ai/workflowComposer';
-import { SEED_WORKFLOWS } from '../../core/database/seed';
+import { workflowService } from '../../features/workflows/workflowService';
 
 export default function WorkflowEditorScreen() {
   const { id, initialWorkflow } = useLocalSearchParams<{ id: string; initialWorkflow?: string }>();
@@ -41,22 +41,26 @@ export default function WorkflowEditorScreen() {
   const [editInstruction, setEditInstruction] = useState('');
 
   useEffect(() => {
-    if (initialWorkflow) {
-      try {
-        const parsed = JSON.parse(initialWorkflow);
-        setWorkflow(parsed);
-        setSelectedProvider(parsed.provider_id || 'claude');
-        return;
-      } catch (err) {
-        console.warn('Could not parse initial workflow:', err);
+    async function loadWf() {
+      if (initialWorkflow) {
+        try {
+          const parsed = JSON.parse(initialWorkflow);
+          setWorkflow(parsed);
+          setSelectedProvider(parsed.provider_id || 'claude');
+          await workflowService.saveWorkflow(parsed);
+          return;
+        } catch (err) {
+          console.warn('Could not parse initial workflow:', err);
+        }
+      }
+
+      const found = await workflowService.getWorkflowById(id);
+      if (found) {
+        setWorkflow(found);
+        setSelectedProvider(found.provider_id || 'claude');
       }
     }
-
-    const found = SEED_WORKFLOWS.find((w) => w.id === id);
-    if (found) {
-      setWorkflow(found);
-      setSelectedProvider(found.provider_id || 'claude');
-    }
+    loadWf();
   }, [id, initialWorkflow]);
 
   if (!workflow) {
@@ -72,29 +76,37 @@ export default function WorkflowEditorScreen() {
     if (targetIndex < 0 || targetIndex >= workflow.steps.length) return;
 
     const newSteps = WorkflowComposer.reorderSteps(workflow.steps, index, targetIndex);
-    setWorkflow({ ...workflow, steps: newSteps });
+    const updated = { ...workflow, steps: newSteps };
+    setWorkflow(updated);
+    workflowService.saveWorkflow(updated);
     showToast(`Reordered step to position ${targetIndex + 1}`, 'info');
   };
 
   const handleToggleStep = (stepId: string) => {
-    const updated = workflow.steps.map((s) => (s.id === stepId ? { ...s, enabled: !s.enabled } : s));
-    setWorkflow({ ...workflow, steps: updated });
+    const updatedSteps = workflow.steps.map((s) => (s.id === stepId ? { ...s, enabled: !s.enabled } : s));
+    const updated = { ...workflow, steps: updatedSteps };
+    setWorkflow(updated);
+    workflowService.saveWorkflow(updated);
   };
 
   const handleRemoveStep = (stepId: string) => {
     const filtered = workflow.steps
       .filter((s) => s.id !== stepId)
       .map((s, idx) => ({ ...s, position: idx + 1 }));
-    setWorkflow({ ...workflow, steps: filtered });
+    const updated = { ...workflow, steps: filtered };
+    setWorkflow(updated);
+    workflowService.saveWorkflow(updated);
     showToast('Step removed from workflow', 'info');
   };
 
   const handleSaveStepInstructions = () => {
     if (!editingStep) return;
-    const updated = workflow.steps.map((s) =>
+    const updatedSteps = workflow.steps.map((s) =>
       s.id === editingStep.id ? { ...s, customInstructions: editInstruction } : s
     );
-    setWorkflow({ ...workflow, steps: updated });
+    const updated = { ...workflow, steps: updatedSteps };
+    setWorkflow(updated);
+    workflowService.saveWorkflow(updated);
     setEditingStep(null);
     showToast('Custom step instructions updated', 'success');
   };

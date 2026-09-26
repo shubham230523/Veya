@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -8,36 +8,48 @@ import {
   TouchableOpacity,
   FlatList,
 } from 'react-native';
-import { router } from 'expo-router';
-import { Bookmark, PlusCircle, ArrowRight } from 'lucide-react-native';
+import { router, useFocusEffect } from 'expo-router';
+import { Bookmark, PlusCircle, ArrowRight, Layers } from 'lucide-react-native';
 import { useTheme, spacing, radius, palette } from '../../core/theme';
 import { Card } from '../../components/ui/Card';
 import { Container } from '../../components/ui/Container';
 import { Button } from '../../components/ui/Button';
 import { SkillCard } from '../../components/SkillCard';
 import { skillService } from '../../features/skills/skillService';
+import { workflowService } from '../../features/workflows/workflowService';
 import { CanonicalSkill } from '../../types/skill';
 import { Workflow } from '../../types/workflow';
-import { SEED_WORKFLOWS } from '../../core/database/seed';
 
 export default function LibraryScreen() {
   const { colors } = useTheme();
   const [activeTab, setActiveTab] = useState<'saved' | 'created' | 'workflows'>('saved');
   const [savedSkills, setSavedSkills] = useState<CanonicalSkill[]>([]);
   const [createdSkills, setCreatedSkills] = useState<CanonicalSkill[]>([]);
-  const [workflows, setWorkflows] = useState<Workflow[]>(SEED_WORKFLOWS);
+  const [workflows, setWorkflows] = useState<Workflow[]>([]);
 
-  useEffect(() => {
-    loadLibraryData();
-  }, [activeTab]);
+  useFocusEffect(
+    useCallback(() => {
+      loadLibraryData();
+    }, [activeTab])
+  );
 
   const loadLibraryData = async () => {
     const saved = await skillService.getSavedSkills();
     setSavedSkills(saved);
 
     const all = await skillService.getSkills();
-    const custom = all.filter((s) => s.source?.type === 'user_created' || s.id.startsWith('skill-custom-'));
+    const custom = all.filter(
+      (s) =>
+        s.source?.type === 'user_created' ||
+        s.source?.type === 'imported' ||
+        s.id.startsWith('skill-custom-') ||
+        s.id.startsWith('idea-skill-') ||
+        s.id.startsWith('web-found-')
+    );
     setCreatedSkills(custom);
+
+    const activeWfs = await workflowService.getWorkflows();
+    setWorkflows(activeWfs);
   };
 
   return (
@@ -121,32 +133,43 @@ export default function LibraryScreen() {
 
         {activeTab === 'workflows' && (
           <ScrollView contentContainerStyle={styles.listContent}>
-            {workflows.map((wf) => (
-              <Card
-                key={wf.id}
-                onPress={() =>
-                  router.push({
-                    pathname: '/workflow/[id]',
-                    params: { id: wf.id, initialWorkflow: JSON.stringify(wf) },
-                  })
-                }
-                style={styles.wfCard}
-              >
-                <View style={styles.wfHeader}>
-                  <Text style={[styles.wfTitle, { color: colors.textPrimary }]}>{wf.name}</Text>
-                  <Text style={[styles.wfBadge, { color: palette.primaryLight }]}>{wf.steps.length} Skills</Text>
-                </View>
-                <Text numberOfLines={2} style={[styles.wfGoal, { color: colors.textSecondary }]}>
-                  "{wf.goal}"
+            {workflows.length === 0 ? (
+              <View style={styles.emptyBox}>
+                <Layers color={colors.textMuted} size={32} />
+                <Text style={[styles.emptyTitle, { color: colors.textPrimary }]}>No Active Workflows</Text>
+                <Text style={[styles.emptyDesc, { color: colors.textMuted }]}>
+                  Describe your idea on the Home screen to compose your first AI workflow!
                 </Text>
-                <View style={styles.wfFooter}>
-                  <Text style={[styles.wfDate, { color: colors.textMuted }]}>
-                    Updated: {new Date(wf.updated_at).toLocaleDateString()}
+                <Button onPress={() => router.push('/(tabs)')} style={{ marginTop: spacing.md }} title="Compose Workflow" />
+              </View>
+            ) : (
+              workflows.map((wf) => (
+                <Card
+                  key={wf.id}
+                  onPress={() =>
+                    router.push({
+                      pathname: '/workflow/[id]',
+                      params: { id: wf.id, initialWorkflow: JSON.stringify(wf) },
+                    })
+                  }
+                  style={styles.wfCard}
+                >
+                  <View style={styles.wfHeader}>
+                    <Text style={[styles.wfTitle, { color: colors.textPrimary }]}>{wf.name}</Text>
+                    <Text style={[styles.wfBadge, { color: palette.primaryLight }]}>{wf.steps.length} Skills</Text>
+                  </View>
+                  <Text numberOfLines={2} style={[styles.wfGoal, { color: colors.textSecondary }]}>
+                    "{wf.goal}"
                   </Text>
-                  <ArrowRight color={colors.textSecondary} size={14} />
-                </View>
-              </Card>
-            ))}
+                  <View style={styles.wfFooter}>
+                    <Text style={[styles.wfDate, { color: colors.textMuted }]}>
+                      Updated: {new Date(wf.updated_at).toLocaleDateString()}
+                    </Text>
+                    <ArrowRight color={colors.textSecondary} size={14} />
+                  </View>
+                </Card>
+              ))
+            )}
           </ScrollView>
         )}
       </Container>
