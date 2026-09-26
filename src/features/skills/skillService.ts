@@ -5,6 +5,7 @@ import { supabase, isSupabaseConfigured } from '../../core/database/supabase';
 import { OpenRouterClient } from '../../core/ai/openrouterClient';
 
 const CUSTOM_SKILLS_STORAGE_KEY = 'veya_custom_skills_v1';
+const SAVED_SKILL_IDS_KEY = 'veya_saved_skill_ids_v1';
 
 function getPersistedCustomSkills(): CanonicalSkill[] {
   try {
@@ -40,9 +41,34 @@ function savePersistedCustomSkills(skills: CanonicalSkill[]): void {
   }
 }
 
+function getPersistedSavedSkillIds(): Set<string> {
+  try {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      const stored = window.localStorage.getItem(SAVED_SKILL_IDS_KEY);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed)) return new Set(parsed);
+      }
+    }
+  } catch (err) {
+    console.warn('Failed to read saved skill IDs:', err);
+  }
+  return new Set();
+}
+
+function savePersistedSavedSkillIds(ids: Set<string>): void {
+  try {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      window.localStorage.setItem(SAVED_SKILL_IDS_KEY, JSON.stringify(Array.from(ids)));
+    }
+  } catch (err) {
+    console.warn('Failed to save skill IDs to local storage:', err);
+  }
+}
+
 class SkillService {
   private skills: CanonicalSkill[] = [...getPersistedCustomSkills(), ...SEED_SKILLS];
-  private savedSkillIds: Set<string> = new Set();
+  private savedSkillIds: Set<string> = getPersistedSavedSkillIds();
   private reviews: Record<string, SkillReview[]> = {};
 
   registerSkill(skill: CanonicalSkill) {
@@ -693,10 +719,12 @@ Return ONLY a JSON object with this schema:
     if (isSaved) {
       this.savedSkillIds.delete(skillId);
       if (skill) skill.save_count = Math.max(0, skill.save_count - 1);
+      savePersistedSavedSkillIds(this.savedSkillIds);
       return false;
     } else {
       this.savedSkillIds.add(skillId);
       if (skill) skill.save_count += 1;
+      savePersistedSavedSkillIds(this.savedSkillIds);
       return true;
     }
   }
