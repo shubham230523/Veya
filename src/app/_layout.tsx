@@ -18,11 +18,12 @@ function RootContent() {
     if (Platform.OS === 'android') {
       try {
         SystemUI.setBackgroundColorAsync(colors.bg);
+        NavigationBar.setStyle(mode === 'dark' ? 'light' : 'dark');
       } catch (err) {
         // Ignored
       }
     }
-  }, [colors.bg]);
+  }, [colors.bg, mode]);
 
   const baseTheme = mode === 'dark' ? DarkTheme : DefaultTheme;
 

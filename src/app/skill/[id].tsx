@@ -187,78 +187,84 @@ export default function SkillDetailScreen() {
           </View>
 
           {/* Navigation Tabs */}
-          <View style={[styles.tabBar, { borderColor: colors.surfaceBorder }]}>
-            <TouchableOpacity
-              onPress={() => setActiveTab('prompt')}
-              style={[
-                styles.tabItem,
-                activeTab === 'prompt' && [
-                  styles.tabItemActive,
-                  { borderBottomColor: palette.primary },
-                ],
-              ]}
+          <View style={[styles.tabBarContainer, { borderColor: colors.surfaceBorder }]}>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.tabBarScrollContent}
             >
-              <FileText
-                color={activeTab === 'prompt' ? palette.primary : colors.textMuted}
-                size={16}
-              />
-              <Text
+              <TouchableOpacity
+                onPress={() => setActiveTab('prompt')}
                 style={[
-                  styles.tabLabel,
-                  { color: activeTab === 'prompt' ? colors.textPrimary : colors.textMuted },
+                  styles.tabItem,
+                  activeTab === 'prompt' && [
+                    styles.tabItemActive,
+                    { borderBottomColor: palette.primary },
+                  ],
                 ]}
               >
-                Full Skill Prompt
-              </Text>
-            </TouchableOpacity>
+                <FileText
+                  color={activeTab === 'prompt' ? palette.primary : colors.textMuted}
+                  size={16}
+                />
+                <Text
+                  style={[
+                    styles.tabLabel,
+                    { color: activeTab === 'prompt' ? colors.textPrimary : colors.textMuted },
+                  ]}
+                >
+                  Full Skill Prompt
+                </Text>
+              </TouchableOpacity>
 
-            <TouchableOpacity
-              onPress={() => setActiveTab('breakdown')}
-              style={[
-                styles.tabItem,
-                activeTab === 'breakdown' && [
-                  styles.tabItemActive,
-                  { borderBottomColor: palette.primary },
-                ],
-              ]}
-            >
-              <List
-                color={activeTab === 'breakdown' ? palette.primary : colors.textMuted}
-                size={16}
-              />
-              <Text
+              <TouchableOpacity
+                onPress={() => setActiveTab('breakdown')}
                 style={[
-                  styles.tabLabel,
-                  { color: activeTab === 'breakdown' ? colors.textPrimary : colors.textMuted },
+                  styles.tabItem,
+                  activeTab === 'breakdown' && [
+                    styles.tabItemActive,
+                    { borderBottomColor: palette.primary },
+                  ],
                 ]}
               >
-                Structured View
-              </Text>
-            </TouchableOpacity>
+                <List
+                  color={activeTab === 'breakdown' ? palette.primary : colors.textMuted}
+                  size={16}
+                />
+                <Text
+                  style={[
+                    styles.tabLabel,
+                    { color: activeTab === 'breakdown' ? colors.textPrimary : colors.textMuted },
+                  ]}
+                >
+                  Structured View
+                </Text>
+              </TouchableOpacity>
 
-            <TouchableOpacity
-              onPress={() => setActiveTab('reviews')}
-              style={[
-                styles.tabItem,
-                activeTab === 'reviews' && [
-                  styles.tabItemActive,
-                  { borderBottomColor: palette.primary },
-                ],
-              ]}
-            >
-              <MessageSquare
-                color={activeTab === 'reviews' ? palette.primary : colors.textMuted}
-                size={16}
-              />
-              <Text
+              <TouchableOpacity
+                onPress={() => setActiveTab('reviews')}
                 style={[
-                  styles.tabLabel,
-                  { color: activeTab === 'reviews' ? colors.textPrimary : colors.textMuted },
+                  styles.tabItem,
+                  activeTab === 'reviews' && [
+                    styles.tabItemActive,
+                    { borderBottomColor: palette.primary },
+                  ],
                 ]}
               >
-                Stats & Reviews
-              </Text>
-            </TouchableOpacity>
+                <MessageSquare
+                  color={activeTab === 'reviews' ? palette.primary : colors.textMuted}
+                  size={16}
+                />
+                <Text
+                  style={[
+                    styles.tabLabel,
+                    { color: activeTab === 'reviews' ? colors.textPrimary : colors.textMuted },
+                  ]}
+                >
+                  Stats & Reviews
+                </Text>
+              </TouchableOpacity>
+            </ScrollView>
           </View>
 
           {/* TAB 1: FULL GENERATED PROMPT (DEFAULT VIEW) */}
@@ -590,10 +596,14 @@ const styles = StyleSheet.create({
   primaryCopyBtn: {
     width: '100%',
   },
-  tabBar: {
-    flexDirection: 'row',
+  tabBarContainer: {
     borderBottomWidth: 1,
     marginBottom: spacing.lg,
+  },
+  tabBarScrollContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
   },
   tabItem: {
     flexDirection: 'row',
