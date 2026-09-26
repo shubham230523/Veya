@@ -129,17 +129,18 @@ export default function HomeScreen() {
             </View>
 
             <Button
-              icon={<ArrowRight color="#FFFFFF" size={16} />}
+              disabled={loading}
+              icon={loading ? undefined : <ArrowRight color="#FFFFFF" size={16} />}
               iconPosition="right"
               loading={loading}
               onPress={() => handleComposeWorkflow()}
               style={styles.actionButton}
-              title="Compose Workflow"
+              title={loading ? 'Composing AI Workflow...' : 'Compose Workflow'}
             />
 
             {loading && Boolean(streamProgress) && (
               <View style={[styles.streamProgressBox, { backgroundColor: colors.surfaceHover, borderColor: colors.surfaceBorder }]}>
-                <ActivityIndicator color={palette.primaryLight} size="small" />
+                <Sparkles color={palette.primaryLight} size={16} />
                 <Text numberOfLines={2} style={[styles.streamProgressText, { color: palette.primaryLight }]}>
                   {streamProgress}
                 </Text>

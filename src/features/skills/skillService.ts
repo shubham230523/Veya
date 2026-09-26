@@ -9,11 +9,18 @@ class SkillService {
   private savedSkillIds: Set<string> = new Set();
   private reviews: Record<string, SkillReview[]> = {};
 
+  registerSkill(skill: CanonicalSkill) {
+    if (!this.skills.some((s) => s.id === skill.id)) {
+      this.skills.unshift(skill);
+    }
+  }
+
   async getSkills(filter?: {
     category?: SkillCategory | 'All';
     search?: string;
     tag?: string;
   }): Promise<CanonicalSkill[]> {
+    let dbSkills: CanonicalSkill[] = [];
     if (isSupabaseConfigured()) {
       try {
         let query = supabase.from('skills').select('*');
@@ -29,18 +36,20 @@ class SkillService {
         }
 
         const { data, error } = await query;
-        if (error) {
-          console.warn('Supabase query error:', error.message);
-        } else if (data) {
-          return data as CanonicalSkill[];
+        if (!error && data) {
+          dbSkills = data as CanonicalSkill[];
         }
       } catch (err: any) {
         console.warn('Supabase query fallback error:', err.message);
       }
     }
 
-    // In-Memory / Fallback Search (Used when Supabase is NOT configured)
-    let result = [...this.skills];
+    // Merge Supabase skills and local in-memory skills, deduplicating by ID
+    const map = new Map<string, CanonicalSkill>();
+    this.skills.forEach((s) => map.set(s.id, s));
+    dbSkills.forEach((s) => map.set(s.id, s));
+
+    let result = Array.from(map.values());
 
     if (filter?.category && filter.category !== 'All') {
       result = result.filter((s) => s.category === filter.category);
@@ -69,7 +78,6 @@ class SkillService {
       try {
         const { data, error } = await supabase.from('skills').select('*').eq('id', id).single();
         if (!error && data) return data as CanonicalSkill;
-        if (!error && !data) return undefined;
       } catch (err: any) {
         console.warn('Supabase getSkillById error:', err.message);
       }
@@ -145,9 +153,8 @@ class SkillService {
           .select()
           .single();
 
-        if (error) {
-          console.warn('Supabase createSkill insert error:', error.message);
-        } else if (inserted) {
+        if (!error && inserted) {
+          this.registerSkill(inserted as CanonicalSkill);
           return inserted as CanonicalSkill;
         }
       } catch (err: any) {
@@ -155,7 +162,7 @@ class SkillService {
       }
     }
 
-    this.skills.unshift(newSkill);
+    this.registerSkill(newSkill);
     return newSkill;
   }
 
@@ -221,14 +228,14 @@ Return ONLY a JSON array of skill objects matching this schema:
 
       console.log(`[Veya AI Workflow Research] ✅ Successfully researched ${results.length} web skills in ${Date.now() - searchStartTime}ms.`);
 
-      return results.map((item, idx) => {
+      const generatedSkills = results.map((item, idx) => {
         const baseSlug = (item.name || 'workflow-skill')
           .toLowerCase()
           .replace(/[^a-z0-9]+/g, '-')
           .replace(/^-+|-+$/g, '');
         const slug = `${baseSlug}-${Date.now().toString().slice(-4)}-${idx}`;
 
-        return {
+        const skillObj: CanonicalSkill = {
           id: `idea-skill-${Date.now()}-${idx}`,
           name: item.name || `Skill ${idx + 1}`,
           slug,
@@ -262,7 +269,12 @@ Return ONLY a JSON array of skill objects matching this schema:
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         };
+
+        this.registerSkill(skillObj);
+        return skillObj;
       });
+
+      return generatedSkills;
     } catch (err: any) {
       console.warn(`[Veya AI Workflow Research] ⚠️ AI Research error (${err.message}). Using dynamic fallback pipeline.`);
       return this.generateFallbackSkillsForIdea(cleanIdea);
@@ -278,7 +290,7 @@ Return ONLY a JSON array of skill objects matching this schema:
     const skills: CanonicalSkill[] = [];
 
     // Step 1: Product Requirements & Competitor Specs
-    skills.push({
+    const s1: CanonicalSkill = {
       id: `fallback-prd-${Date.now()}`,
       name: 'Product Requirements & Competitor Specs',
       slug: 'product-requirements-spec',
@@ -304,10 +316,12 @@ Return ONLY a JSON array of skill objects matching this schema:
       source: { type: 'official', source_name: 'Veya AI' },
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
-    });
+    };
+    skills.push(s1);
+    this.registerSkill(s1);
 
     // Step 2: System / Mobile Architecture
-    skills.push({
+    const s2: CanonicalSkill = {
       id: `fallback-arch-${Date.now()}`,
       name: isMobile ? 'React Native & Expo Mobile Architecture' : 'Full-Stack Software Architecture',
       slug: 'system-architecture',
@@ -335,11 +349,13 @@ Return ONLY a JSON array of skill objects matching this schema:
       source: { type: 'official', source_name: 'Veya AI' },
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
-    });
+    };
+    skills.push(s2);
+    this.registerSkill(s2);
 
     // Step 3 (Optional / Specific): Whisper Audio Transcription Pipeline
     if (isAudio) {
-      skills.push({
+      const sAudio: CanonicalSkill = {
         id: `fallback-audio-${Date.now()}`,
         name: 'Whisper Audio Transcription Pipeline',
         slug: 'whisper-audio-transcription-pipeline',
@@ -365,12 +381,14 @@ Return ONLY a JSON array of skill objects matching this schema:
         source: { type: 'official', source_name: 'Veya AI' },
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
-      });
+      };
+      skills.push(sAudio);
+      this.registerSkill(sAudio);
     }
 
     // Step 4 (Optional / Specific): AI Note Summarizer & Organizer
     if (isNotes) {
-      skills.push({
+      const sNotes: CanonicalSkill = {
         id: `fallback-notes-${Date.now()}`,
         name: 'OpenRouter AI Note Summarizer & Organizer',
         slug: 'openrouter-ai-note-organizer',
@@ -396,11 +414,13 @@ Return ONLY a JSON array of skill objects matching this schema:
         source: { type: 'official', source_name: 'Veya AI' },
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
-      });
+      };
+      skills.push(sNotes);
+      this.registerSkill(sNotes);
     }
 
     // Step 5: Database Design, Testing & Deployment Pipeline
-    skills.push({
+    const sTest: CanonicalSkill = {
       id: `fallback-test-${Date.now()}`,
       name: 'Database Schema, Testing & Deployment Pipeline',
       slug: 'database-testing-deployment',
@@ -426,7 +446,9 @@ Return ONLY a JSON array of skill objects matching this schema:
       source: { type: 'official', source_name: 'Veya AI' },
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
-    });
+    };
+    skills.push(sTest);
+    this.registerSkill(sTest);
 
     return skills;
   }
@@ -478,7 +500,7 @@ Return ONLY a JSON array of 3 skill objects matching this schema:
           .replace(/^-+|-+$/g, '');
         const slug = `${baseSlug}-${Date.now().toString().slice(-4)}-${idx}`;
 
-        return {
+        const skillObj: CanonicalSkill = {
           id: `web-found-${Date.now()}-${idx}`,
           name: item.name || 'Discovered Web Skill',
           slug,
@@ -512,6 +534,9 @@ Return ONLY a JSON array of 3 skill objects matching this schema:
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         };
+
+        this.registerSkill(skillObj);
+        return skillObj;
       });
     } catch (err: any) {
       console.error(`[Veya Skill Finder] ❌ Web AI Skill Search failed after ${Date.now() - searchStartTime}ms:`, err.message);
@@ -590,7 +615,10 @@ Return ONLY a JSON object with this schema:
     });
   }
 
-  async toggleSaveSkill(skillId: string): Promise<boolean> {
+  async toggleSaveSkill(skillId: string, optionalSkill?: CanonicalSkill): Promise<boolean> {
+    if (optionalSkill) {
+      this.registerSkill(optionalSkill);
+    }
     const isSaved = this.savedSkillIds.has(skillId);
     const skill = await this.getSkillById(skillId);
 
@@ -610,7 +638,8 @@ Return ONLY a JSON object with this schema:
   }
 
   async getSavedSkills(): Promise<CanonicalSkill[]> {
-    return this.skills.filter((s) => this.savedSkillIds.has(s.id));
+    const all = await this.getSkills();
+    return all.filter((s) => this.savedSkillIds.has(s.id));
   }
 
   async addReview(skillId: string, rating: number, content: string): Promise<SkillReview> {

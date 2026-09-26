@@ -36,7 +36,7 @@ export const SkillCard: React.FC<SkillCardProps> = ({ skill, onSaveToggle }) => 
         </View>
         <Card
           onPress={() => {
-            skillService.toggleSaveSkill(skill.id);
+            skillService.toggleSaveSkill(skill.id, skill);
             onSaveToggle?.();
           }}
           bordered={false}
