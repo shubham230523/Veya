@@ -16,7 +16,9 @@ class SkillService {
     search?: string;
     tag?: string;
   }): Promise<CanonicalSkill[]> {
-    if (isSupabaseConfigured()) {
+    const isConfigured = isSupabaseConfigured();
+    console.log('[SkillService] getSkills called. Supabase configured:', isConfigured);
+    if (isConfigured) {
       try {
         let query = supabase.from('skills').select('*');
 
@@ -31,6 +33,7 @@ class SkillService {
         }
 
         const { data, error } = await query;
+        console.log('[SkillService] Supabase getSkills result:', { count: data?.length ?? 0, error });
         if (!error && data) {
           let result = (data as CanonicalSkill[]).map((s) => {
             if (!s.source) {

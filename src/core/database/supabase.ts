@@ -24,11 +24,17 @@ if (typeof globalThis !== 'undefined' && !(globalThis as any).WebSocket) {
 }
 
 export const isSupabaseConfigured = (): boolean => {
-  return Boolean(
+  const configured = Boolean(
     SUPABASE_URL &&
     SUPABASE_ANON_KEY &&
     !SUPABASE_URL.includes('placeholder')
   );
+  console.log('[Veya Supabase] Config Check:', {
+    configured,
+    url: SUPABASE_URL,
+    hasKey: Boolean(SUPABASE_ANON_KEY),
+  });
+  return configured;
 };
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {

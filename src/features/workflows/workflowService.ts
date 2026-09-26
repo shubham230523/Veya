@@ -3,13 +3,16 @@ import { supabase, isSupabaseConfigured } from '../../core/database/supabase';
 
 class WorkflowService {
   async getWorkflows(): Promise<Workflow[]> {
-    if (isSupabaseConfigured()) {
+    const isConfigured = isSupabaseConfigured();
+    console.log('[WorkflowService] getWorkflows called. Supabase configured:', isConfigured);
+    if (isConfigured) {
       try {
         const { data: wfData, error: wfErr } = await supabase
           .from('workflows')
           .select('*')
           .order('created_at', { ascending: false });
 
+        console.log('[WorkflowService] Supabase getWorkflows result:', { count: wfData?.length ?? 0, error: wfErr });
         if (wfErr || !wfData) {
           console.warn('Supabase getWorkflows error:', wfErr?.message);
           return [];
