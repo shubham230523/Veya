@@ -2,9 +2,12 @@ name: Deploy Veya to GitHub Pages
 
 on:
   push:
+    branches:
+      - master
     tags:
       - 'v*'
       - '*'
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -31,11 +34,12 @@ jobs:
         env:
           EXPO_PUBLIC_AI_PROVIDER: ${{ secrets.EXPO_PUBLIC_AI_PROVIDER || 'openrouter' }}
           EXPO_PUBLIC_AI_MODEL: ${{ secrets.EXPO_PUBLIC_AI_MODEL || 'google/gemini-2.0-flash-exp:free' }}
-          EXPO_PUBLIC_OPENROUTER_API_KEY: ${{ secrets.EXPO_PUBLIC_OPENROUTER_API_KEY }}
-          EXPO_PUBLIC_GEMINI_API_KEY: ${{ secrets.EXPO_PUBLIC_GEMINI_API_KEY }}
           EXPO_PUBLIC_SUPABASE_URL: ${{ secrets.EXPO_PUBLIC_SUPABASE_URL || 'https://sfuxebkldwvyjsusdupp.supabase.co' }}
-          EXPO_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.EXPO_PUBLIC_SUPABASE_ANON_KEY }}
-        run: npx expo export -p web
+          EXPO_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.EXPO_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNmdXhlYmtsZHd2eWpzdXNkdXBwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODczMDUzODMsImV4cCI6MjEwMjg4MTM4M30.EyNMVW3hX36GXYl6JNsZuh-LyWLVyuI9Zg7k9C2NPJI' }}
+        run: |
+          npx expo export -p web
+          touch dist/.nojekyll
+          cp dist/index.html dist/404.html
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
