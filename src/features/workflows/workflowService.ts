@@ -1,117 +1,150 @@
 import { Workflow } from '../../types/workflow';
 import { supabase, isSupabaseConfigured } from '../../core/database/supabase';
 
-const WORKFLOWS_STORAGE_KEY = 'veya_saved_workflows_v1';
-
-function getPersistedWorkflows(): Workflow[] {
-  try {
-    if (typeof window !== 'undefined' && window.localStorage) {
-      const stored = window.localStorage.getItem(WORKFLOWS_STORAGE_KEY);
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed)) return parsed;
-      }
-    }
-  } catch (err) {
-    console.warn('Failed to read persisted workflows:', err);
-  }
-  return [];
-}
-
-function savePersistedWorkflows(workflows: Workflow[]): void {
-  try {
-    if (typeof window !== 'undefined' && window.localStorage) {
-      window.localStorage.setItem(WORKFLOWS_STORAGE_KEY, JSON.stringify(workflows));
-    }
-  } catch (err) {
-    console.warn('Failed to save workflows to local storage:', err);
-  }
-}
-
 class WorkflowService {
-  private workflows: Workflow[] = [...getPersistedWorkflows()];
-
   async getWorkflows(): Promise<Workflow[]> {
-    let dbWfs: Workflow[] = [];
     if (isSupabaseConfigured()) {
       try {
-        const { data, error } = await supabase
+        const { data: wfData, error: wfErr } = await supabase
           .from('workflows')
           .select('*')
           .order('created_at', { ascending: false });
-        if (!error && data) {
-          dbWfs = data as Workflow[];
+
+        if (wfErr || !wfData) {
+          console.warn('Supabase getWorkflows error:', wfErr?.message);
+          return [];
         }
+
+        const { data: stepData } = await supabase
+          .from('workflow_steps')
+          .select('*')
+          .order('position', { ascending: true });
+
+        const stepMap = new Map<string, any[]>();
+        if (stepData) {
+          stepData.forEach((st) => {
+            if (!stepMap.has(st.workflow_id)) {
+              stepMap.set(st.workflow_id, []);
+            }
+            stepMap.get(st.workflow_id)!.push({
+              id: st.id,
+              workflow_id: st.workflow_id,
+              skill_id: st.skill_id,
+              position: st.position,
+              enabled: st.enabled,
+              customInstructions: st.custom_instructions,
+            });
+          });
+        }
+
+        return wfData.map((wf) => ({
+          ...wf,
+          steps: stepMap.get(wf.id) || [],
+        }));
       } catch (err: any) {
-        console.warn('Supabase getWorkflows error:', err.message);
+        console.warn('Supabase getWorkflows exception:', err.message);
       }
     }
-
-    const map = new Map<string, Workflow>();
-    this.workflows.forEach((w) => map.set(w.id, w));
-    dbWfs.forEach((w) => map.set(w.id, w));
-
-    return Array.from(map.values()).sort(
-      (a, b) =>
-        new Date(b.updated_at || b.created_at).getTime() - new Date(a.updated_at || a.created_at).getTime()
-    );
+    return [];
   }
 
   async getWorkflowById(id: string): Promise<Workflow | undefined> {
     if (isSupabaseConfigured()) {
       try {
-        const { data, error } = await supabase.from('workflows').select('*').eq('id', id).single();
-        if (!error && data) return data as Workflow;
+        const { data: wf, error: wfErr } = await supabase
+          .from('workflows')
+          .select('*')
+          .eq('id', id)
+          .single();
+
+        if (wfErr || !wf) return undefined;
+
+        const { data: steps } = await supabase
+          .from('workflow_steps')
+          .select('*')
+          .eq('workflow_id', id)
+          .order('position', { ascending: true });
+
+        return {
+          ...wf,
+          steps: steps
+            ? steps.map((st) => ({
+                id: st.id,
+                workflow_id: st.workflow_id,
+                skill_id: st.skill_id,
+                position: st.position,
+                enabled: st.enabled,
+                customInstructions: st.custom_instructions,
+              }))
+            : [],
+        };
       } catch (err: any) {
         console.warn('Supabase getWorkflowById error:', err.message);
       }
     }
-    return this.workflows.find((w) => w.id === id);
+    return undefined;
   }
 
   async saveWorkflow(workflow: Workflow): Promise<Workflow> {
-    const existingIndex = this.workflows.findIndex((w) => w.id === workflow.id);
-    const updatedWorkflow: Workflow = {
-      ...workflow,
+    if (!isSupabaseConfigured()) {
+      throw new Error('Supabase is not configured.');
+    }
+
+    const isUuid = (val: string) =>
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(val);
+
+    const wfPayload = {
+      id: isUuid(workflow.id) ? workflow.id : undefined,
+      user_id: null,
+      name: workflow.name || 'Custom Workflow',
+      goal: workflow.goal,
+      provider_id: workflow.provider_id || 'claude',
+      created_at: workflow.created_at || new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
 
-    if (existingIndex >= 0) {
-      this.workflows[existingIndex] = updatedWorkflow;
-    } else {
-      this.workflows.unshift(updatedWorkflow);
+    const { data: savedWf, error: wfErr } = await supabase
+      .from('workflows')
+      .upsert([wfPayload])
+      .select()
+      .single();
+
+    if (wfErr) {
+      console.error('Supabase saveWorkflow error:', wfErr.message);
+      throw new Error(`Failed to save workflow to Supabase: ${wfErr.message}`);
     }
 
-    savePersistedWorkflows(this.workflows);
+    if (workflow.steps && workflow.steps.length > 0) {
+      const stepPayloads = workflow.steps.map((st, idx) => ({
+        id: isUuid(st.id) ? st.id : undefined,
+        workflow_id: savedWf.id,
+        skill_id: isUuid(st.skill_id) ? st.skill_id : 'e6d8a928-c6f2-41b9-ba1d-b6b23feb2ca4',
+        position: st.position || idx + 1,
+        enabled: st.enabled !== false,
+        custom_instructions: st.customInstructions || null,
+      }));
 
-    if (isSupabaseConfigured()) {
-      try {
-        const { data, error } = await supabase
-          .from('workflows')
-          .upsert([updatedWorkflow])
-          .select()
-          .single();
-        if (!error && data) return data as Workflow;
-      } catch (err: any) {
-        console.warn('Supabase saveWorkflow error:', err.message);
-      }
+      await supabase.from('workflow_steps').upsert(stepPayloads);
     }
 
-    return updatedWorkflow;
+    return {
+      ...workflow,
+      id: savedWf.id,
+      updated_at: savedWf.updated_at,
+    };
   }
 
   async deleteWorkflow(id: string): Promise<boolean> {
-    this.workflows = this.workflows.filter((w) => w.id !== id);
-    savePersistedWorkflows(this.workflows);
-
     if (isSupabaseConfigured()) {
       try {
+        await supabase.from('workflow_steps').delete().eq('workflow_id', id);
         await supabase.from('workflows').delete().eq('id', id);
+        return true;
       } catch (err: any) {
         console.warn('Supabase deleteWorkflow error:', err.message);
       }
     }
-    return true;
+    return false;
   }
 }
 
