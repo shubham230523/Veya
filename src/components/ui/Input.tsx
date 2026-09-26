@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   TextInput,
@@ -8,7 +8,7 @@ import {
   ViewStyle,
   TextStyle,
 } from 'react-native';
-import { useTheme, spacing, radius } from '../../core/theme';
+import { useTheme, spacing, radius, palette } from '../../core/theme';
 
 export interface InputProps extends TextInputProps {
   label?: string;
@@ -30,9 +30,12 @@ export const Input: React.FC<InputProps> = ({
   inputStyle,
   placeholderTextColor,
   multiline,
+  onFocus,
+  onBlur,
   ...props
 }) => {
   const { colors } = useTheme();
+  const [isFocused, setIsFocused] = useState(false);
 
   return (
     <View style={[styles.container, containerStyle]}>
@@ -41,17 +44,25 @@ export const Input: React.FC<InputProps> = ({
         style={[
           styles.inputWrapper,
           {
-            backgroundColor: colors.surface,
-            borderColor: error ? colors.danger : colors.surfaceBorder,
-            minHeight: multiline ? 96 : 48,
+            backgroundColor: isFocused ? colors.surface : colors.surfaceHover,
+            borderColor: error ? colors.danger : isFocused ? palette.primary : colors.surfaceBorder,
+            minHeight: multiline ? 100 : 48,
             alignItems: multiline ? 'flex-start' : 'center',
-            paddingVertical: multiline ? spacing.xs : 0,
+            paddingVertical: multiline ? spacing.sm : spacing.xs,
           },
         ]}
       >
         {leftIcon && <View style={styles.iconLeft}>{leftIcon}</View>}
         <TextInput
           multiline={multiline}
+          onBlur={(e) => {
+            setIsFocused(false);
+            onBlur?.(e);
+          }}
+          onFocus={(e) => {
+            setIsFocused(true);
+            onFocus?.(e);
+          }}
           placeholderTextColor={placeholderTextColor || colors.textMuted}
           style={[
             styles.input,
@@ -84,12 +95,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     borderRadius: radius.md,
     borderWidth: 1,
-    paddingHorizontal: spacing.md,
+    paddingHorizontal: spacing.lg,
   },
   input: {
     flex: 1,
     fontSize: 14,
+    lineHeight: 20,
     paddingVertical: spacing.xs,
+    outlineColor: 'transparent',
+    outlineWidth: 0,
+    ...({ outlineStyle: 'none' } as any),
   },
   iconLeft: {
     marginRight: spacing.sm,

@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   View,
   Text,
@@ -8,7 +8,7 @@ import {
   TouchableOpacity,
   FlatList,
 } from 'react-native';
-import { router, useFocusEffect } from 'expo-router';
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { Bookmark, PlusCircle, ArrowRight, Layers } from 'lucide-react-native';
 import { useTheme, spacing, radius, palette } from '../../core/theme';
 import { Card } from '../../components/ui/Card';
@@ -21,11 +21,18 @@ import { CanonicalSkill } from '../../types/skill';
 import { Workflow } from '../../types/workflow';
 
 export default function LibraryScreen() {
+  const { tab } = useLocalSearchParams<{ tab?: string }>();
   const { colors } = useTheme();
   const [activeTab, setActiveTab] = useState<'saved' | 'created' | 'workflows'>('saved');
   const [savedSkills, setSavedSkills] = useState<CanonicalSkill[]>([]);
   const [createdSkills, setCreatedSkills] = useState<CanonicalSkill[]>([]);
   const [workflows, setWorkflows] = useState<Workflow[]>([]);
+
+  useEffect(() => {
+    if (tab === 'created' || tab === 'saved' || tab === 'workflows') {
+      setActiveTab(tab);
+    }
+  }, [tab]);
 
   useFocusEffect(
     useCallback(() => {
@@ -44,7 +51,11 @@ export default function LibraryScreen() {
         s.source?.type === 'imported' ||
         s.id.startsWith('skill-custom-') ||
         s.id.startsWith('idea-skill-') ||
-        s.id.startsWith('web-found-')
+        s.id.startsWith('web-found-') ||
+        s.tags?.includes('Custom') ||
+        s.tags?.includes('Researched') ||
+        s.tags?.includes('Imported') ||
+        s.tags?.includes('Web Discovered')
     );
     setCreatedSkills(custom);
 

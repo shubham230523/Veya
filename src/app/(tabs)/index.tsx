@@ -31,6 +31,7 @@ export default function HomeScreen() {
 
   const [goalPrompt, setGoalPrompt] = useState('');
   const [loading, setLoading] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
   const [streamProgress, setStreamProgress] = useState<string>('');
   const [popularSkills, setPopularSkills] = useState<CanonicalSkill[]>([]);
   const [activeWorkflows, setActiveWorkflows] = useState<Workflow[]>([]);
@@ -117,16 +118,23 @@ export default function HomeScreen() {
               Describe your goal in plain English. Veya will discover relevant Skills and compose an ordered Workflow.
             </Text>
 
-            <View style={[styles.inputBox, { backgroundColor: colors.surfaceHover, borderColor: colors.surfaceBorder }]}>
-              <TextInput
-                multiline
-                onChangeText={setGoalPrompt}
-                placeholder="e.g. 'I want to build an AI-powered note-taking app that transcribes audio and organizes notes.'"
-                placeholderTextColor={colors.textMuted}
-                style={[styles.textInput, { color: colors.textPrimary }]}
-                value={goalPrompt}
-              />
-            </View>
+            <TextInput
+              multiline
+              onBlur={() => setIsFocused(false)}
+              onFocus={() => setIsFocused(true)}
+              onChangeText={setGoalPrompt}
+              placeholder="e.g. 'I want to build an AI-powered note-taking app that transcribes audio and organizes notes.'"
+              placeholderTextColor={colors.textMuted}
+              style={[
+                styles.textInput,
+                {
+                  color: colors.textPrimary,
+                  backgroundColor: isFocused ? colors.surface : colors.surfaceHover,
+                  borderColor: isFocused ? palette.primary : colors.surfaceBorder,
+                },
+              ]}
+              value={goalPrompt}
+            />
 
             <Button
               disabled={loading}
@@ -308,17 +316,19 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     marginBottom: spacing.lg,
   },
-  inputBox: {
+  textInput: {
     borderRadius: radius.md,
     borderWidth: 1,
-    padding: spacing.md,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md + 2,
     marginBottom: spacing.lg,
-    minHeight: 100,
-  },
-  textInput: {
+    minHeight: 110,
     fontSize: 14,
     lineHeight: 22,
     textAlignVertical: 'top',
+    outlineColor: 'transparent',
+    outlineWidth: 0,
+    ...({ outlineStyle: 'none' } as any),
   },
   actionButton: {
     marginBottom: spacing.md,
@@ -326,10 +336,13 @@ const styles = StyleSheet.create({
   streamProgressBox: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.sm,
-    padding: spacing.md,
+    gap: spacing.md,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md + 2,
     borderRadius: radius.md,
     borderWidth: 1,
+    backgroundColor: 'rgba(99, 102, 241, 0.08)',
+    borderColor: 'rgba(99, 102, 241, 0.25)',
     marginBottom: spacing.xl,
   },
   streamProgressText: {
@@ -337,6 +350,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     flex: 1,
     fontFamily: 'monospace',
+    lineHeight: 18,
   },
   quickLabel: {
     fontSize: 11,

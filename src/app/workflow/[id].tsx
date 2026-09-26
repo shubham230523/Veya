@@ -16,6 +16,7 @@ import {
   Trash2,
   Play,
   Edit3,
+  Bookmark,
 } from 'lucide-react-native';
 import { useTheme, spacing, radius, palette } from '../../core/theme';
 import { Button } from '../../components/ui/Button';
@@ -136,7 +137,17 @@ export default function WorkflowEditorScreen() {
             <ArrowLeft color={colors.textPrimary} size={22} />
           </TouchableOpacity>
           <Text style={[styles.navTitle, { color: colors.textPrimary }]}>Workflow Editor</Text>
-          <View style={{ width: 22 }} />
+          <TouchableOpacity
+            onPress={async () => {
+              if (workflow) {
+                await workflowService.saveWorkflow(workflow);
+                showToast('Workflow saved!', 'success');
+              }
+            }}
+            style={{ padding: 4 }}
+          >
+            <Bookmark color={palette.primary} fill={palette.primary} size={20} />
+          </TouchableOpacity>
         </View>
 
         <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>

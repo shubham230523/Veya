@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
 } from 'react-native';
+import { router } from 'expo-router';
 import * as Clipboard from 'expo-clipboard';
 import {
   Search,
@@ -19,6 +20,8 @@ import {
   PlusCircle,
   Copy,
   Check,
+  ArrowRight,
+  Workflow as WorkflowIcon,
 } from 'lucide-react-native';
 import { useTheme, spacing, radius, palette } from '../../core/theme';
 import { Input } from '../../components/ui/Input';
@@ -31,8 +34,11 @@ import { Container } from '../../components/ui/Container';
 import { SkillCard } from '../../components/SkillCard';
 import { useToast } from '../../components/ui/Toast';
 import { skillService } from '../../features/skills/skillService';
+import { workflowService } from '../../features/workflows/workflowService';
 import { formatFullSkillPrompt } from '../../features/skills/skillFormatter';
 import { CanonicalSkill, SkillCategory } from '../../types/skill';
+import { Workflow } from '../../types/workflow';
+import { PROVIDERS } from '../../types/provider';
 
 const CATEGORIES: (SkillCategory | 'All')[] = [
   'All',
@@ -46,7 +52,7 @@ const CATEGORIES: (SkillCategory | 'All')[] = [
   'Productivity',
 ];
 
-type SearchMode = 'catalog' | 'web_finder';
+type SearchMode = 'catalog' | 'workflows' | 'web_finder';
 
 export default function DiscoverScreen() {
   const { colors } = useTheme();
@@ -61,6 +67,9 @@ export default function DiscoverScreen() {
   const [selectedCategory, setSelectedCategory] = useState<SkillCategory | 'All'>('All');
   const [skills, setSkills] = useState<CanonicalSkill[]>([]);
   const [loading, setLoading] = useState(false);
+
+  // Workflows State
+  const [workflows, setWorkflows] = useState<Workflow[]>([]);
 
   // Web Finder State
   const [webQuery, setWebQuery] = useState('');
@@ -91,6 +100,8 @@ export default function DiscoverScreen() {
   useEffect(() => {
     if (searchMode === 'catalog') {
       fetchSkills();
+    } else if (searchMode === 'workflows') {
+      fetchWorkflows();
     }
   }, [searchQuery, selectedCategory, searchMode]);
 
@@ -105,6 +116,11 @@ export default function DiscoverScreen() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const fetchWorkflows = async () => {
+    const data = await workflowService.getWorkflows();
+    setWorkflows(data);
   };
 
   const handleWebSkillSearch = async (overrideQuery?: string) => {
@@ -204,18 +220,28 @@ export default function DiscoverScreen() {
           <View style={styles.header}>
             <View style={styles.titleRow}>
               <View style={{ flex: 1 }}>
-                <Text style={[styles.title, { color: colors.textPrimary }]}>Discover Skills</Text>
+                <Text style={[styles.title, { color: colors.textPrimary }]}>Discover Skills & Workflows</Text>
                 <Text style={[styles.subtitle, { color: colors.textMuted }]}>
-                  Browse catalog skills or search AI skills across the web.
+                  Browse catalog skills, active workflows, or search AI skills across the web.
                 </Text>
               </View>
 
-              <Button
-                icon={<Globe color="#FFFFFF" size={14} />}
-                onPress={() => setImportModalVisible(true)}
-                size="sm"
-                title="URL Import"
-              />
+              <View style={styles.headerActionRow}>
+                <Button
+                  icon={<PlusCircle color={colors.textPrimary} size={14} />}
+                  onPress={() => router.push('/skill/create')}
+                  size="sm"
+                  title="Create Skill"
+                  variant="secondary"
+                />
+
+                <Button
+                  icon={<Globe color="#FFFFFF" size={14} />}
+                  onPress={() => setImportModalVisible(true)}
+                  size="sm"
+                  title="URL Import"
+                />
+              </View>
             </View>
 
             {/* MODE SEGMENT SWITCH */}
@@ -242,6 +268,27 @@ export default function DiscoverScreen() {
               </TouchableOpacity>
 
               <TouchableOpacity
+                onPress={() => setSearchMode('workflows')}
+                style={[
+                  styles.segmentBtn,
+                  searchMode === 'workflows' && { backgroundColor: palette.primary },
+                ]}
+              >
+                <WorkflowIcon
+                  color={searchMode === 'workflows' ? '#FFFFFF' : colors.textSecondary}
+                  size={14}
+                />
+                <Text
+                  style={[
+                    styles.segmentText,
+                    { color: searchMode === 'workflows' ? '#FFFFFF' : colors.textSecondary },
+                  ]}
+                >
+                  Workflows ({workflows.length})
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
                 onPress={() => setSearchMode('web_finder')}
                 style={[
                   styles.segmentBtn,
@@ -258,7 +305,7 @@ export default function DiscoverScreen() {
                     { color: searchMode === 'web_finder' ? '#FFFFFF' : colors.textSecondary },
                   ]}
                 >
-                  🌐 Web AI Skill Finder
+                  🌐 Web Skill Finder
                 </Text>
               </TouchableOpacity>
             </View>
@@ -382,6 +429,87 @@ export default function DiscoverScreen() {
                   {skills.map((skill) => (
                     <View key={skill.id} style={isDesktop ? styles.gridCol : undefined}>
                       <SkillCard onSaveToggle={fetchSkills} skill={skill} />
+                    </View>
+                  ))}
+                </View>
+              )}
+            </View>
+          )}
+
+          {/* RESULTS SECTION: WORKFLOWS MODE */}
+          {searchMode === 'workflows' && (
+            <View style={styles.resultsContainer}>
+              <View style={styles.resultsHeader}>
+                <Text style={[styles.resultsCount, { color: colors.textSecondary }]}>
+                  {workflows.length} {workflows.length === 1 ? 'Workflow' : 'Workflows'} saved
+                </Text>
+                <Button
+                  icon={<PlusCircle color="#FFFFFF" size={14} />}
+                  onPress={() => router.push('/(tabs)')}
+                  size="sm"
+                  title="Compose New Workflow"
+                />
+              </View>
+
+              {workflows.length === 0 ? (
+                <View style={styles.emptyContainer}>
+                  <Layers color={colors.textMuted} size={36} />
+                  <Text style={[styles.emptyTitle, { color: colors.textPrimary }]}>
+                    No Saved Workflows Yet
+                  </Text>
+                  <Text style={[styles.emptyDesc, { color: colors.textMuted }]}>
+                    Compose your multi-step AI workflow on the Home screen or save your executed workflow output payload!
+                  </Text>
+                  <Button
+                    icon={<Sparkles color="#FFFFFF" size={14} />}
+                    onPress={() => router.push('/(tabs)')}
+                    style={{ marginTop: spacing.md }}
+                    title="Compose Workflow on Home"
+                  />
+                </View>
+              ) : (
+                <View style={isDesktop ? styles.gridContainer : undefined}>
+                  {workflows.map((wf) => (
+                    <View key={wf.id} style={isDesktop ? styles.gridCol : undefined}>
+                      <Card
+                        onPress={() =>
+                          router.push({
+                            pathname: '/workflow/[id]',
+                            params: { id: wf.id, initialWorkflow: JSON.stringify(wf) },
+                          })
+                        }
+                        style={styles.wfCard}
+                      >
+                        <View style={styles.wfCardHeader}>
+                          <Badge label={`${wf.steps.length} Skills`} variant="primary" />
+                          {wf.provider_id && (
+                            <Badge
+                              label={PROVIDERS[wf.provider_id]?.name || wf.provider_id}
+                              variant="secondary"
+                            />
+                          )}
+                        </View>
+
+                        <Text style={[styles.wfCardTitle, { color: colors.textPrimary }]}>
+                          {wf.name}
+                        </Text>
+
+                        <Text numberOfLines={2} style={[styles.wfCardGoal, { color: colors.textSecondary }]}>
+                          "{wf.goal}"
+                        </Text>
+
+                        <View style={[styles.wfCardFooter, { borderColor: colors.surfaceBorder }]}>
+                          <Text style={[styles.wfCardDate, { color: colors.textMuted }]}>
+                            Updated: {new Date(wf.updated_at).toLocaleDateString()}
+                          </Text>
+                          <View style={styles.wfCardActionBtn}>
+                            <Text style={[styles.wfCardActionText, { color: palette.primaryLight }]}>
+                              Open Workflow
+                            </Text>
+                            <ArrowRight color={palette.primaryLight} size={14} />
+                          </View>
+                        </View>
+                      </Card>
                     </View>
                   ))}
                 </View>
@@ -547,6 +675,12 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'flex-start',
     marginBottom: spacing.sm,
+    gap: spacing.sm,
+  },
+  headerActionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
   },
   title: {
     fontSize: 24,
@@ -686,6 +820,45 @@ const styles = StyleSheet.create({
     fontSize: 13,
     textAlign: 'center',
     maxWidth: 400,
+  },
+  wfCard: {
+    marginBottom: spacing.lg,
+    padding: spacing.lg,
+  },
+  wfCardHeader: {
+    flexDirection: 'row',
+    gap: spacing.xs,
+    marginBottom: spacing.xs,
+  },
+  wfCardTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    marginBottom: 4,
+  },
+  wfCardGoal: {
+    fontSize: 12,
+    fontStyle: 'italic',
+    lineHeight: 18,
+    marginBottom: spacing.md,
+  },
+  wfCardFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingTop: spacing.xs,
+    borderTopWidth: 1,
+  },
+  wfCardDate: {
+    fontSize: 11,
+  },
+  wfCardActionBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  wfCardActionText: {
+    fontSize: 12,
+    fontWeight: '700',
   },
   webSkillCard: {
     marginBottom: spacing.xxl,

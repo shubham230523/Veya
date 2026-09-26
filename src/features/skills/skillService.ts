@@ -1,17 +1,54 @@
-import { CanonicalSkill, SkillCategory, SkillReview } from '../../types/skill';
+import { CanonicalSkill, SkillCategory, SkillReview, SkillSourceInfo } from '../../types/skill';
 import { SEED_SKILLS } from '../../core/database/seed';
 import { scanSkillContent } from '../../core/security/securityScanner';
 import { supabase, isSupabaseConfigured } from '../../core/database/supabase';
 import { OpenRouterClient } from '../../core/ai/openrouterClient';
 
+const CUSTOM_SKILLS_STORAGE_KEY = 'veya_custom_skills_v1';
+
+function getPersistedCustomSkills(): CanonicalSkill[] {
+  try {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      const stored = window.localStorage.getItem(CUSTOM_SKILLS_STORAGE_KEY);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed)) return parsed;
+      }
+    }
+  } catch (err) {
+    console.warn('Failed to read persisted custom skills:', err);
+  }
+  return [];
+}
+
+function savePersistedCustomSkills(skills: CanonicalSkill[]): void {
+  try {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      const customOnly = skills.filter(
+        (s) =>
+          s.source?.type === 'user_created' ||
+          s.source?.type === 'imported' ||
+          s.id.startsWith('skill-custom-') ||
+          s.id.startsWith('idea-skill-') ||
+          s.id.startsWith('web-found-') ||
+          s.tags?.includes('Custom')
+      );
+      window.localStorage.setItem(CUSTOM_SKILLS_STORAGE_KEY, JSON.stringify(customOnly));
+    }
+  } catch (err) {
+    console.warn('Failed to save custom skills to local storage:', err);
+  }
+}
+
 class SkillService {
-  private skills: CanonicalSkill[] = [...SEED_SKILLS];
+  private skills: CanonicalSkill[] = [...getPersistedCustomSkills(), ...SEED_SKILLS];
   private savedSkillIds: Set<string> = new Set();
   private reviews: Record<string, SkillReview[]> = {};
 
   registerSkill(skill: CanonicalSkill) {
     if (!this.skills.some((s) => s.id === skill.id)) {
       this.skills.unshift(skill);
+      savePersistedCustomSkills(this.skills);
     }
   }
 
@@ -37,7 +74,15 @@ class SkillService {
 
         const { data, error } = await query;
         if (!error && data) {
-          dbSkills = data as CanonicalSkill[];
+          dbSkills = (data as CanonicalSkill[]).map((s) => {
+            if (!s.source && (s.id.startsWith('skill-custom-') || s.tags?.includes('Custom'))) {
+              return {
+                ...s,
+                source: { type: 'user_created', source_name: 'Custom User Skill', author: 'You' },
+              };
+            }
+            return s;
+          });
         }
       } catch (err: any) {
         console.warn('Supabase query fallback error:', err.message);
@@ -77,7 +122,13 @@ class SkillService {
     if (isSupabaseConfigured()) {
       try {
         const { data, error } = await supabase.from('skills').select('*').eq('id', id).single();
-        if (!error && data) return data as CanonicalSkill;
+        if (!error && data) {
+          const item = data as CanonicalSkill;
+          if (!item.source && (item.id.startsWith('skill-custom-') || item.tags?.includes('Custom'))) {
+            item.source = { type: 'user_created', source_name: 'Custom User Skill', author: 'You' };
+          }
+          return item;
+        }
       } catch (err: any) {
         console.warn('Supabase getSkillById error:', err.message);
       }
@@ -107,8 +158,17 @@ class SkillService {
       rules: data.rules,
     });
 
+    const defaultSource: SkillSourceInfo = {
+      type: 'user_created',
+      source_name: 'Custom User Skill',
+      author: 'You',
+    };
+
+    const source = data.source || defaultSource;
+
     const newSkill: CanonicalSkill = {
       ...data,
+      source,
       id: `skill-custom-${Date.now()}`,
       rating_average: 5.0,
       rating_count: 1,
@@ -123,6 +183,7 @@ class SkillService {
     if (isSupabaseConfigured()) {
       try {
         const dbPayload = {
+          id: newSkill.id,
           name: newSkill.name,
           slug: newSkill.slug,
           description: newSkill.description,
@@ -144,6 +205,7 @@ class SkillService {
           save_count: newSkill.save_count,
           security_scan_status: newSkill.security_scan_status,
           security_scanned_at: newSkill.security_scanned_at,
+          source: newSkill.source,
           creator_id: null,
         };
 
@@ -154,8 +216,14 @@ class SkillService {
           .single();
 
         if (!error && inserted) {
-          this.registerSkill(inserted as CanonicalSkill);
-          return inserted as CanonicalSkill;
+          const finalSkill: CanonicalSkill = {
+            ...newSkill,
+            ...inserted,
+            id: inserted.id || newSkill.id,
+            source: inserted.source || newSkill.source || defaultSource,
+          };
+          this.registerSkill(finalSkill);
+          return finalSkill;
         }
       } catch (err: any) {
         console.warn('Supabase createSkill error:', err.message);

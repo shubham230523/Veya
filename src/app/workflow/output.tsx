@@ -8,7 +8,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
-import { ArrowLeft, Copy, Check, Sparkles } from 'lucide-react-native';
+import { ArrowLeft, Copy, Check, Sparkles, Bookmark } from 'lucide-react-native';
 import * as Clipboard from 'expo-clipboard';
 import { useTheme, spacing, radius, palette } from '../../core/theme';
 import { Button } from '../../components/ui/Button';
@@ -18,6 +18,7 @@ import { Badge } from '../../components/ui/Badge';
 import { useToast } from '../../components/ui/Toast';
 import { ProviderAdapterEngine, GeneratedOutput } from '../../core/ai/providerAdapters';
 import { OpenRouterClient } from '../../core/ai/openrouterClient';
+import { workflowService } from '../../features/workflows/workflowService';
 import { ProviderType } from '../../types/skill';
 import { Workflow } from '../../types/workflow';
 
@@ -29,8 +30,11 @@ export default function GeneratedOutputScreen() {
   const { colors } = useTheme();
   const { showToast } = useToast();
 
+  const [workflow, setWorkflow] = useState<Workflow | null>(null);
   const [output, setOutput] = useState<GeneratedOutput | null>(null);
   const [copied, setCopied] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [aiResult, setAiResult] = useState<string | null>(null);
   const [runningAi, setRunningAi] = useState(false);
 
@@ -38,13 +42,36 @@ export default function GeneratedOutputScreen() {
     if (workflowJson) {
       try {
         const wf: Workflow = JSON.parse(workflowJson);
+        setWorkflow(wf);
         const adapted = ProviderAdapterEngine.adaptWorkflow(wf, provider || 'claude');
         setOutput(adapted);
+        checkSavedStatus(wf.id);
       } catch (err) {
         console.warn('Error adapting workflow output:', err);
       }
     }
   }, [workflowJson, provider]);
+
+  const checkSavedStatus = async (wfId: string) => {
+    const existing = await workflowService.getWorkflowById(wfId);
+    if (existing) {
+      setIsSaved(true);
+    }
+  };
+
+  const handleSaveWorkflow = async () => {
+    if (!workflow) return;
+    setSaving(true);
+    try {
+      await workflowService.saveWorkflow(workflow);
+      setIsSaved(true);
+      showToast('Workflow saved! Visible in Discover -> Workflows & Library.', 'success');
+    } catch (err: any) {
+      showToast(err.message || 'Failed to save workflow', 'error');
+    } finally {
+      setSaving(false);
+    }
+  };
 
   if (!output) {
     return (
@@ -89,9 +116,20 @@ export default function GeneratedOutputScreen() {
             <ArrowLeft color={colors.textPrimary} size={22} />
           </TouchableOpacity>
           <Text style={[styles.navTitle, { color: colors.textPrimary }]}>Generated Output</Text>
-          <TouchableOpacity onPress={handleCopyToClipboard}>
-            {copied ? <Check color={colors.success} size={22} /> : <Copy color={colors.textPrimary} size={22} />}
-          </TouchableOpacity>
+
+          <View style={styles.navRightActions}>
+            <TouchableOpacity onPress={handleSaveWorkflow} style={{ padding: 4 }}>
+              <Bookmark
+                color={isSaved ? palette.primary : colors.textMuted}
+                fill={isSaved ? palette.primary : 'transparent'}
+                size={22}
+              />
+            </TouchableOpacity>
+
+            <TouchableOpacity onPress={handleCopyToClipboard} style={{ padding: 4 }}>
+              {copied ? <Check color={colors.success} size={22} /> : <Copy color={colors.textPrimary} size={22} />}
+            </TouchableOpacity>
+          </View>
         </View>
 
         <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
@@ -112,18 +150,35 @@ export default function GeneratedOutputScreen() {
 
             <View style={styles.buttonRow}>
               <Button
+                icon={
+                  isSaved ? (
+                    <Check color="#FFFFFF" size={16} />
+                  ) : (
+                    <Bookmark color="#FFFFFF" size={16} />
+                  )
+                }
+                loading={saving}
+                onPress={handleSaveWorkflow}
+                style={{ flex: 1 }}
+                title={isSaved ? 'Workflow Saved' : 'Save Workflow'}
+                variant={isSaved ? 'outline' : 'primary'}
+              />
+
+              <Button
                 icon={copied ? <Check color="#FFFFFF" size={16} /> : <Copy color="#FFFFFF" size={16} />}
                 onPress={handleCopyToClipboard}
                 style={{ flex: 1 }}
                 title={copied ? 'Copied!' : 'Copy Prompt'}
+                variant="secondary"
               />
+
               <Button
                 icon={<Sparkles color={colors.textPrimary} size={16} />}
                 loading={runningAi}
                 onPress={handleRunAiSimulation}
                 style={{ flex: 1 }}
                 title="Test AI Call"
-                variant="secondary"
+                variant="outline"
               />
             </View>
           </Card>
@@ -172,6 +227,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '700',
   },
+  navRightActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
   content: {
     padding: spacing.xl,
     paddingBottom: 60,
@@ -200,7 +260,8 @@ const styles = StyleSheet.create({
   },
   buttonRow: {
     flexDirection: 'row',
-    gap: spacing.md,
+    gap: spacing.sm,
+    flexWrap: 'wrap',
   },
   aiResultCard: {
     marginBottom: spacing.xl,
