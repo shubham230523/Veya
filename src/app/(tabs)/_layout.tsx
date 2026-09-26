@@ -1,11 +1,18 @@
 import React from 'react';
 import { Platform } from 'react-native';
 import { Tabs } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Sparkles, Compass, Bookmark, User } from 'lucide-react-native';
 import { useTheme, palette, radius, spacing } from '../../core/theme';
 
 export default function TabsLayout() {
   const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
+
+  const isWeb = Platform.OS === 'web';
+  const bottomInset = isWeb ? 0 : Math.max(insets.bottom, 12);
+  const tabHeight = isWeb ? 60 : 60 + bottomInset;
+  const paddingBottom = isWeb ? 10 : Math.max(insets.bottom, 8);
 
   return (
     <Tabs
@@ -16,10 +23,10 @@ export default function TabsLayout() {
         tabBarStyle: {
           backgroundColor: colors.surface,
           borderTopColor: colors.surfaceBorder,
-          height: 60,
-          paddingBottom: Platform.OS === 'web' ? 10 : 8,
+          height: tabHeight,
+          paddingBottom: paddingBottom,
           paddingTop: 6,
-          ...(Platform.OS === 'web'
+          ...(isWeb
             ? {
                 maxWidth: 800,
                 alignSelf: 'center',

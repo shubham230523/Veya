@@ -218,21 +218,22 @@ export default function DiscoverScreen() {
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
           {/* HEADER SECTION */}
           <View style={styles.header}>
-            <View style={styles.titleRow}>
-              <View style={{ flex: 1 }}>
+            <View style={[styles.titleRow, !isDesktop && styles.titleRowMobile]}>
+              <View style={!isDesktop ? { width: '100%' } : { flex: 1 }}>
                 <Text style={[styles.title, { color: colors.textPrimary }]}>Discover Skills & Workflows</Text>
                 <Text style={[styles.subtitle, { color: colors.textMuted }]}>
                   Browse catalog skills, active workflows, or search AI skills across the web.
                 </Text>
               </View>
 
-              <View style={styles.headerActionRow}>
+              <View style={[styles.headerActionRow, !isDesktop && styles.headerActionRowMobile]}>
                 <Button
                   icon={<PlusCircle color={colors.textPrimary} size={14} />}
                   onPress={() => router.push('/skill/create')}
                   size="sm"
                   title="Create Skill"
                   variant="secondary"
+                  style={!isDesktop ? { flex: 1 } : undefined}
                 />
 
                 <Button
@@ -240,74 +241,89 @@ export default function DiscoverScreen() {
                   onPress={() => setImportModalVisible(true)}
                   size="sm"
                   title="URL Import"
+                  style={!isDesktop ? { flex: 1 } : undefined}
                 />
               </View>
             </View>
 
             {/* MODE SEGMENT SWITCH */}
-            <View style={[styles.modeSegment, { backgroundColor: colors.surface, borderColor: colors.surfaceBorder }]}>
-              <TouchableOpacity
-                onPress={() => setSearchMode('catalog')}
-                style={[
-                  styles.segmentBtn,
-                  searchMode === 'catalog' && { backgroundColor: palette.primary },
-                ]}
+            <View
+              style={[
+                styles.modeSegmentWrapper,
+                { backgroundColor: colors.surface, borderColor: colors.surfaceBorder },
+              ]}
+            >
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.modeSegmentScrollContainer}
               >
-                <Layers
-                  color={searchMode === 'catalog' ? '#FFFFFF' : colors.textSecondary}
-                  size={14}
-                />
-                <Text
+                <TouchableOpacity
+                  onPress={() => setSearchMode('catalog')}
                   style={[
-                    styles.segmentText,
-                    { color: searchMode === 'catalog' ? '#FFFFFF' : colors.textSecondary },
+                    styles.segmentBtn,
+                    !isDesktop && styles.segmentBtnMobile,
+                    searchMode === 'catalog' && { backgroundColor: palette.primary },
                   ]}
                 >
-                  Catalog Skills ({skills.length})
-                </Text>
-              </TouchableOpacity>
+                  <Layers
+                    color={searchMode === 'catalog' ? '#FFFFFF' : colors.textSecondary}
+                    size={14}
+                  />
+                  <Text
+                    style={[
+                      styles.segmentText,
+                      { color: searchMode === 'catalog' ? '#FFFFFF' : colors.textSecondary },
+                    ]}
+                  >
+                    Catalog Skills ({skills.length})
+                  </Text>
+                </TouchableOpacity>
 
-              <TouchableOpacity
-                onPress={() => setSearchMode('workflows')}
-                style={[
-                  styles.segmentBtn,
-                  searchMode === 'workflows' && { backgroundColor: palette.primary },
-                ]}
-              >
-                <WorkflowIcon
-                  color={searchMode === 'workflows' ? '#FFFFFF' : colors.textSecondary}
-                  size={14}
-                />
-                <Text
+                <TouchableOpacity
+                  onPress={() => setSearchMode('workflows')}
                   style={[
-                    styles.segmentText,
-                    { color: searchMode === 'workflows' ? '#FFFFFF' : colors.textSecondary },
+                    styles.segmentBtn,
+                    !isDesktop && styles.segmentBtnMobile,
+                    searchMode === 'workflows' && { backgroundColor: palette.primary },
                   ]}
                 >
-                  Workflows ({workflows.length})
-                </Text>
-              </TouchableOpacity>
+                  <WorkflowIcon
+                    color={searchMode === 'workflows' ? '#FFFFFF' : colors.textSecondary}
+                    size={14}
+                  />
+                  <Text
+                    style={[
+                      styles.segmentText,
+                      { color: searchMode === 'workflows' ? '#FFFFFF' : colors.textSecondary },
+                    ]}
+                  >
+                    Workflows ({workflows.length})
+                  </Text>
+                </TouchableOpacity>
 
-              <TouchableOpacity
-                onPress={() => setSearchMode('web_finder')}
-                style={[
-                  styles.segmentBtn,
-                  searchMode === 'web_finder' && { backgroundColor: palette.primary },
-                ]}
-              >
-                <Sparkles
-                  color={searchMode === 'web_finder' ? '#FFFFFF' : palette.primaryLight}
-                  size={14}
-                />
-                <Text
+                <TouchableOpacity
+                  onPress={() => setSearchMode('web_finder')}
                   style={[
-                    styles.segmentText,
-                    { color: searchMode === 'web_finder' ? '#FFFFFF' : colors.textSecondary },
+                    styles.segmentBtn,
+                    !isDesktop && styles.segmentBtnMobile,
+                    searchMode === 'web_finder' && { backgroundColor: palette.primary },
                   ]}
                 >
-                  🌐 Web Skill Finder
-                </Text>
-              </TouchableOpacity>
+                  <Sparkles
+                    color={searchMode === 'web_finder' ? '#FFFFFF' : palette.primaryLight}
+                    size={14}
+                  />
+                  <Text
+                    style={[
+                      styles.segmentText,
+                      { color: searchMode === 'web_finder' ? '#FFFFFF' : colors.textSecondary },
+                    ]}
+                  >
+                    🌐 Web Skill Finder
+                  </Text>
+                </TouchableOpacity>
+              </ScrollView>
             </View>
 
             {/* MODE 1: CATALOG SEARCH */}
@@ -677,10 +693,21 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
     gap: spacing.sm,
   },
+  titleRowMobile: {
+    flexDirection: 'column',
+    alignItems: 'stretch',
+    gap: spacing.xs,
+  },
   headerActionRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.xs,
+  },
+  headerActionRowMobile: {
+    flexDirection: 'row',
+    width: '100%',
+    gap: spacing.sm,
+    marginBottom: spacing.md,
   },
   title: {
     fontSize: 24,
@@ -691,12 +718,16 @@ const styles = StyleSheet.create({
     fontSize: 13,
     marginBottom: spacing.lg,
   },
-  modeSegment: {
-    flexDirection: 'row',
+  modeSegmentWrapper: {
     borderRadius: radius.md,
     borderWidth: 1,
     padding: 4,
     marginBottom: spacing.xl,
+  },
+  modeSegmentScrollContainer: {
+    flexDirection: 'row',
+    flexGrow: 1,
+    gap: 4,
   },
   segmentBtn: {
     flex: 1,
@@ -705,7 +736,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: spacing.xs,
     paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
     borderRadius: radius.sm,
+  },
+  segmentBtnMobile: {
+    flex: undefined,
+    paddingHorizontal: spacing.md,
   },
   segmentText: {
     fontSize: 12,

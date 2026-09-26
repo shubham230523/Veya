@@ -74,32 +74,34 @@ export default function LibraryScreen() {
 
           {/* Tab Segment Controls */}
           <View style={[styles.segmentContainer, { backgroundColor: colors.surface, borderColor: colors.surfaceBorder }]}>
-            <TouchableOpacity
-              onPress={() => setActiveTab('saved')}
-              style={[styles.segment, activeTab === 'saved' && { backgroundColor: palette.primary }]}
-            >
-              <Text style={[styles.segmentText, { color: activeTab === 'saved' ? '#FFFFFF' : colors.textSecondary }]}>
-                Saved ({savedSkills.length})
-              </Text>
-            </TouchableOpacity>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ flexGrow: 1, flexDirection: 'row', gap: 4 }}>
+              <TouchableOpacity
+                onPress={() => setActiveTab('saved')}
+                style={[styles.segment, activeTab === 'saved' && { backgroundColor: palette.primary }]}
+              >
+                <Text style={[styles.segmentText, { color: activeTab === 'saved' ? '#FFFFFF' : colors.textSecondary }]}>
+                  Saved ({savedSkills.length})
+                </Text>
+              </TouchableOpacity>
 
-            <TouchableOpacity
-              onPress={() => setActiveTab('created')}
-              style={[styles.segment, activeTab === 'created' && { backgroundColor: palette.primary }]}
-            >
-              <Text style={[styles.segmentText, { color: activeTab === 'created' ? '#FFFFFF' : colors.textSecondary }]}>
-                Created ({createdSkills.length})
-              </Text>
-            </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => setActiveTab('created')}
+                style={[styles.segment, activeTab === 'created' && { backgroundColor: palette.primary }]}
+              >
+                <Text style={[styles.segmentText, { color: activeTab === 'created' ? '#FFFFFF' : colors.textSecondary }]}>
+                  Created ({createdSkills.length})
+                </Text>
+              </TouchableOpacity>
 
-            <TouchableOpacity
-              onPress={() => setActiveTab('workflows')}
-              style={[styles.segment, activeTab === 'workflows' && { backgroundColor: palette.primary }]}
-            >
-              <Text style={[styles.segmentText, { color: activeTab === 'workflows' ? '#FFFFFF' : colors.textSecondary }]}>
-                Workflows ({workflows.length})
-              </Text>
-            </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => setActiveTab('workflows')}
+                style={[styles.segment, activeTab === 'workflows' && { backgroundColor: palette.primary }]}
+              >
+                <Text style={[styles.segmentText, { color: activeTab === 'workflows' ? '#FFFFFF' : colors.textSecondary }]}>
+                  Workflows ({workflows.length})
+                </Text>
+              </TouchableOpacity>
+            </ScrollView>
           </View>
         </View>
 

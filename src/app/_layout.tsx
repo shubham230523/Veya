@@ -1,6 +1,9 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { Platform } from 'react-native';
 import { Stack, DefaultTheme, DarkTheme, ThemeProvider as NavThemeProvider } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { NavigationBar } from 'expo-navigation-bar';
+import * as SystemUI from 'expo-system-ui';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider, useTheme } from '../core/theme';
 import { ToastProvider } from '../components/ui/Toast';
@@ -10,6 +13,16 @@ const queryClient = new QueryClient();
 
 function RootContent() {
   const { mode, colors } = useTheme();
+
+  useEffect(() => {
+    if (Platform.OS === 'android') {
+      try {
+        SystemUI.setBackgroundColorAsync(colors.bg);
+      } catch (err) {
+        // Ignored
+      }
+    }
+  }, [colors.bg]);
 
   const baseTheme = mode === 'dark' ? DarkTheme : DefaultTheme;
 
@@ -28,6 +41,9 @@ function RootContent() {
     <NavThemeProvider value={dynamicNavTheme}>
       <ToastProvider>
         <StatusBar style={mode === 'dark' ? 'light' : 'dark'} />
+        {Platform.OS === 'android' && (
+          <NavigationBar style={mode === 'dark' ? 'light' : 'dark'} />
+        )}
         <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.bg } }}>
           <Stack.Screen name="index" options={{ headerShown: false }} />
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
