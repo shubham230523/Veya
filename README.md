@@ -3,7 +3,6 @@
 > **Turn what you want into a clear path forward.**
 
 [![Live Web Demo](https://img.shields.io/badge/Live%20Demo-GitHub%20Pages-6366F1?style=for-the-badge&logo=github)](https://shubham230523.github.io/Veya/)
-[![Build & Deploy](https://img.shields.io/github/actions/workflow/status/shubham230523/Veya/deploy-gh-pages.yml?branch=master&style=for-the-badge&logo=githubactions&logoColor=white)](https://github.com/shubham230523/Veya/actions)
 
 ---
 
@@ -11,7 +10,7 @@
 
 🚀 **Try the live web app:** [https://shubham230523.github.io/Veya/](https://shubham230523.github.io/Veya/)
 
-Repository: [https://github.com/shubham230523/Veya](https://github.com/shubham230523/Veya)
+> **Note for First-Time Setup:** Ensure GitHub Pages is enabled in GitHub Repository **Settings → Pages** with Source set to **`gh-pages` branch, `/ (root)` folder**.
 
 ---
 
@@ -112,10 +111,6 @@ Veya/
 ### Installation
 
 ```bash
-# Clone repository
-git clone https://github.com/shubham230523/Veya.git
-cd Veya
-
 # Install dependencies
 npm install
 ```
