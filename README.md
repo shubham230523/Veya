@@ -142,25 +142,6 @@ npm test
 npx tsc --noEmit
 ```
 
----
-
-## 📦 Deployment & GitHub Actions
-
-This project includes an automated GitHub Actions deployment workflow (`.github/workflows/deploy-gh-pages.yml`).
-
-### Triggering a GitHub Pages Deployment
-
-To publish a new live release to GitHub Pages:
-
-```bash
-git tag v1.0.0
-git push origin v1.0.0
-```
-
-The action will automatically compile the Expo web build (`npx expo export -p web`) and deploy it to `gh-pages` branch.
-
----
-
 ## 🤝 Contributing
 
 Contributions are welcome!. Feel free to open an issue or submit a pull request.
