@@ -57,6 +57,33 @@ const MOCK_SKILLS: CanonicalSkill[] = [
     created_at: '2026-01-01T00:00:00Z',
     updated_at: '2026-01-01T00:00:00Z',
   },
+  {
+    id: 'skill-3',
+    name: 'Product PRD Specs',
+    slug: 'product-prd-specs',
+    description: 'PRD specs',
+    objective: 'PRD',
+    inputs: [],
+    prerequisites: [],
+    instructions: 'PRD',
+    steps: [],
+    rules: [],
+    expected_output: 'PRD',
+    visibility: 'public',
+    version: 1,
+    rating_average: 5,
+    rating_count: 1,
+    usage_count: 1,
+    save_count: 1,
+    security_scan_status: 'clean',
+    security_scanned_at: '2026-01-01T00:00:00Z',
+    category: 'Productivity',
+    tags: ['PRD'],
+    providerCompatibility: ['gemini', 'claude', 'gpt'],
+    source: { type: 'official', source_name: 'Veya' },
+    created_at: '2026-01-01T00:00:00Z',
+    updated_at: '2026-01-01T00:00:00Z',
+  },
 ];
 
 describe('WorkflowComposer Engine', () => {
@@ -69,6 +96,28 @@ describe('WorkflowComposer Engine', () => {
     expect(workflow.provider_id).toEqual('claude');
     expect(workflow.steps.length).toBeGreaterThan(0);
     expect(workflow.steps[0].position).toEqual(1);
+  });
+
+  it('composes and sorts workflow steps from researched skills based on component priority', () => {
+    const researched = [MOCK_SKILLS[1], MOCK_SKILLS[0], MOCK_SKILLS[2]]; // Testing, Coding, Productivity
+    const workflow = WorkflowComposer.composeFromResearchedSkills('Build SaaS App', researched, 'gemini');
+
+    expect(workflow.provider_id).toBe('gemini');
+    expect(workflow.steps[0].skill?.category).toBe('Productivity'); // Priority 1
+    expect(workflow.steps[1].skill?.category).toBe('Coding'); // Priority 5
+    expect(workflow.steps[2].skill?.category).toBe('Testing'); // Priority 8
+  });
+
+  it('handles unknown category priority gracefully', () => {
+    const unknownSkill: CanonicalSkill = {
+      ...MOCK_SKILLS[0],
+      id: 'skill-unknown',
+      category: 'UnknownCategory' as any,
+    };
+
+    const workflow = WorkflowComposer.composeFromResearchedSkills('Test Goal', [unknownSkill, MOCK_SKILLS[2]]);
+    expect(workflow.steps[0].skill?.category).toBe('Productivity'); // Priority 1 comes before Priority 99
+    expect(workflow.steps[1].skill?.category).toBe('UnknownCategory' as any);
   });
 
   it('reorders workflow steps correctly', () => {
@@ -114,5 +163,28 @@ describe('WorkflowComposer Engine', () => {
     expect(validation.valid).toBe(false);
     expect(validation.warnings.length).toEqual(1);
     expect(validation.warnings[0]).toContain('Testing step included without prior Coding');
+
+    const validPipeline = [
+      {
+        id: 'step-1',
+        workflow_id: 'wf-1',
+        skill_id: 'skill-1',
+        position: 1,
+        enabled: true,
+        skill: MOCK_SKILLS[0], // Coding
+      },
+      {
+        id: 'step-2',
+        workflow_id: 'wf-1',
+        skill_id: 'skill-2',
+        position: 2,
+        enabled: true,
+        skill: MOCK_SKILLS[1], // Testing
+      },
+    ];
+
+    const validCheck = WorkflowComposer.validateDependencies(validPipeline);
+    expect(validCheck.valid).toBe(true);
+    expect(validCheck.warnings).toHaveLength(0);
   });
 });

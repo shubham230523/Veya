@@ -3,7 +3,7 @@ import { workflowService } from '../src/features/workflows/workflowService';
 import { supabase, isSupabaseConfigured } from '../src/core/database/supabase';
 import * as supabaseModule from '../src/core/database/supabase';
 
-describe('Supabase Database Verification', () => {
+describe('Supabase Database Verification & Configuration', () => {
   beforeEach(() => {
     jest.restoreAllMocks();
     jest.spyOn(supabaseModule, 'isSupabaseConfigured').mockReturnValue(true);
@@ -12,6 +12,7 @@ describe('Supabase Database Verification', () => {
   it('confirms Supabase environment configuration is valid', () => {
     const configured = isSupabaseConfigured();
     expect(typeof configured).toBe('boolean');
+    expect(configured).toBe(true);
   });
 
   it('saves and retrieves skills directly via Supabase', async () => {

@@ -121,4 +121,34 @@ describe('ProviderAdapters Engine', () => {
     expect(result.providerId).toEqual('openrouter');
     expect(result.formattedPrompt).toContain('# SYSTEM ROLE');
   });
+
+  it('handles steps without skill or custom instructions cleanly across all providers', () => {
+    const bareWorkflow: Workflow = {
+      id: 'bare-wf',
+      name: 'Bare Workflow',
+      goal: 'Bare Goal',
+      provider_id: 'claude',
+      created_at: '2026-01-01',
+      updated_at: '2026-01-01',
+      steps: [
+        {
+          id: 'step-bare',
+          workflow_id: 'bare-wf',
+          skill_id: 'skill-none',
+          position: 1,
+          enabled: true,
+        },
+      ],
+    };
+
+    const claudeRes = ProviderAdapterEngine.adaptWorkflow(bareWorkflow, 'claude');
+    expect(claudeRes.formattedPrompt).toContain('skill="Custom Step"');
+    expect(claudeRes.formattedPrompt).toContain('<custom_instructions>None</custom_instructions>');
+
+    const geminiRes = ProviderAdapterEngine.adaptWorkflow(bareWorkflow, 'gemini');
+    expect(geminiRes.formattedPrompt).toContain('STEP 1: Custom Step');
+
+    const gptRes = ProviderAdapterEngine.adaptWorkflow(bareWorkflow, 'gpt');
+    expect(gptRes.formattedPrompt).toContain('Step 1: Custom Step');
+  });
 });
